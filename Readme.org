@@ -1,0 +1,21 @@
+#+TITLE: json2nd
+
+* Overview
+
+Filter to convert a JSON document with a top-level array to NDJSON (a.k.a NLJSON, new-line delimited JSON), which is generally much easier to work with, especially for a large file.
+
+#+begin_src sh
+  cat large_array.json | json2nd > object_per_line.json
+#+end_src
+
+* Installation
+
+TODO
+
+* Author / credits
+
+Joe Higton <draxil@gmail.com>
+
+* Licence
+
+TODO
