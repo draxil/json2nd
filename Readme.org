@@ -1,6 +1,6 @@
 #+TITLE: json2nd
 
-* Overview
+* Usage
 
 Filter to convert a JSON document with a top-level array to NDJSON (a.k.a NLJSON, new-line delimited JSON), which is generally much easier to work with, especially for a large file.
 
@@ -8,10 +8,16 @@ Filter to convert a JSON document with a top-level array to NDJSON (a.k.a NLJSON
   cat large_array.json | json2nd > object_per_line.json
 #+end_src
 
-If the top level of the JSON is not an array then the filter is a no-op by default and will just re-produce the input.
+Like a lot of filter programs you can switch from using stdin to a list of filenames, so now it acts a bit like a JSON cat that converts arrays:
 
 #+begin_src sh
-  echo "{}" | json2nd > object.json
+  json2nd large_array1.json large_array2.json > object_per_line.json
+#+end_src
+
+If the top level of the JSON is not an array then no conversion happens:
+
+#+begin_src sh
+  echo "{}" | json2nd > object.json # will contain {}
 #+end_src
 
 TODO: version which errors

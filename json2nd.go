@@ -6,10 +6,21 @@ import (
 )
 
 func main() {
-	err := processor{os.Stdin, os.Stdout, false}.run()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+
+	if len(os.Args) > 1 {
+		err := filemode(os.Args, os.Stdout, false)
+		bail_if_err(err)
+		return
 	}
 
+	err := processor{os.Stdin, os.Stdout, false}.run()
+	bail_if_err(err)
+}
+
+func bail_if_err(e error) {
+	if e == nil {
+		return
+	}
+
+	fmt.Fprintln(os.Stderr, e)
 }

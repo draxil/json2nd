@@ -12,16 +12,12 @@ type processor struct {
 	sensitive bool
 }
 
-// TODO: dont be a seeker
-// TODO: better peek?
 // TODO: sensitive
-// TODO: hook2main
 // TODO: prove buf
-// TODO: Readme.org
-// TODO: licence
-// TODO: github
 // TODO: filename mode
 // TODO: builds?
+// TODO: default to formatted
+// TODO: opt for unformatted
 
 func (p processor) run() error {
 
