@@ -19,8 +19,13 @@ TODO: version which errors
 
 * Installation
 
-TODO
+** Using Go
 
+Assuming your $GOBIN directory is somewhere in your $PATH it's as simple as:
+
+#+begin_src sh
+  go install github.com/draxil/json2nd@latest
+#+end_src
 
 * Plans / what about XYZ?
 
