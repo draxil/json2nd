@@ -34,4 +34,4 @@ Joe Higton <draxil@gmail.com>
 
 * Licence
 
-TODO
+Please see the [[./LICENSE][licence file]].
