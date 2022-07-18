@@ -10,7 +10,7 @@ Filter to convert a JSON document with a top-level array to NDJSON (a.k.a NLJSON
 
 If the top level of the JSON is not an array then the filter is a no-op by default and will just re-produce the input.
 
-#+begin_src 
+#+begin_src sh
   echo "{}" | json2nd > object.json
 #+end_src
 
