@@ -8,9 +8,25 @@ Filter to convert a JSON document with a top-level array to NDJSON (a.k.a NLJSON
   cat large_array.json | json2nd > object_per_line.json
 #+end_src
 
+If the top level of the JSON is not an array then the filter is a no-op by default and will just re-produce the input.
+
+#+begin_src 
+  echo "{}" | json2nd > object.json
+#+end_src
+
+TODO: version which errors
+
+
 * Installation
 
 TODO
+
+
+* Plans / what about XYZ?
+
+** Windows style line endings ("\r\n")?
+
+Maybe. Honesly would be getting beyond the simplicity of this thing, but I can see how it could be useful to some people. Bug me?
 
 * Author / credits
 
