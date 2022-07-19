@@ -1,0 +1,10 @@
+#+TITLE: json2nd - other usage scenarios
+
+* Check we're unpacking an array
+
+The main use case of this tool is to unpack arrays, but as NDJSON can be any type we don't raise an error if this is called with something other than array. However, you can apply the ~-expect-array~ flag to have ~json2nd~ check that whatever we're processing is an array.
+
+#+begin_src sh
+  echo "{}" | json2nd -expect-array > object.json # will error
+#+end_src
+
