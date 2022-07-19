@@ -16,10 +16,6 @@ Like a lot of filter programs you can switch from using stdin to a list of filen
 
 For more see [[./doc/other_usage.org][other usage scenarios]].
 
-# TODO: this stuff should get shunted to a subdoc.
-TODO: version which errors
-
-
 * Installation
 
 ** Using Go
