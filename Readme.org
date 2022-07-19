@@ -14,7 +14,7 @@ Like a lot of filter programs you can switch from using stdin to a list of filen
   json2nd large_array1.json large_array2.json > object_per_line.json
 #+end_src
 
-Although by default if we don't find an array this will be an error, you can apply the -tolerant flag to have json2nd do nothing in this case. Useful if you want to lazily ensure that the structure isn't an array.
+Although by default if we don't find an array this will be an error, you can apply the ~-tolerant~ flag to have ~json2nd~ do nothing in this case. Useful if you want to lazily ensure that the structure isn't an array.
 
 #+begin_src sh
   echo "{}" | json2nd -tolerant > object.json # will contain {}
@@ -27,7 +27,7 @@ TODO: version which errors
 
 ** Using Go
 
-Assuming your $GOBIN directory is somewhere in your $PATH it's as simple as:
+Assuming your ~$GOBIN~ directory is somewhere in your ~$PATH~ it's as simple as:
 
 #+begin_src sh
   go install github.com/draxil/json2nd@latest
@@ -41,7 +41,7 @@ Maybe. Honesly would be getting beyond the simplicity of this thing, but I can s
 
 ** What about jq?
 
-jq is great! And a lot of the time I'm running this so I can experimentally jq more quickly! But this is simpler to use as it's a single use tool, and should be faster than the equivalent jq (citation needed).  Sometimes you want UNIX philosophy sometimes you need an atomic chainsaw. Why not have both.
+~jq~ is great! And a lot of the time I'm running this so I can experimentally ~jq~ more quickly! But this is simpler to use as it's a single use tool, and should be faster than the equivalent jq (citation needed).  Sometimes you want UNIX philosophy sometimes you need an atomic chainsaw. Why not have both.
 
 * Author / credits
 
