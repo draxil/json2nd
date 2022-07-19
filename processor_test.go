@@ -12,28 +12,42 @@ import (
 func TestProcessor(t *testing.T) {
 
 	cases := []struct {
-		name      string
-		in        io.Reader
-		sensitive bool
-		exp       string
-		expErr    error
+		name     string
+		in       io.Reader
+		tolerant bool
+		exp      string
+		expErr   error
 	}{
 		{
 			name:   "nil reader",
 			expErr: errNilInput(),
 		},
 		{
-			name: "non-array default behaviour",
-			in:   sreader("{}"),
-			exp:  "{}",
+			name:     "non-array tolerant behaviour",
+			tolerant: true,
+			in:       sreader("{}"),
+			exp:      "{}",
 		},
 		{
-			name: "leading whitespace",
-			in:   sreader("   \r\n{}"),
-			exp:  "{}",
+			name:     "non-array default behaviour",
+			tolerant: false,
+			in:       sreader("{}"),
+			expErr:   errNotArray(),
 		},
 		{
-			name:   "just whitespace",
+			name:     "non-array + leading whitespace + tolerant",
+			tolerant: true,
+			in:       sreader("   \r\n{}"),
+			exp:      "{}",
+		},
+		{
+			name:     "just whitespace + tolerant",
+			tolerant: true,
+			in:       sreader("           "),
+			expErr:   rawJSONErr(io.EOF),
+		},
+		{
+			name:   "just whitespace not tolerant",
 			in:     sreader("           "),
 			expErr: rawJSONErr(io.EOF),
 		},
@@ -50,7 +64,7 @@ func TestProcessor(t *testing.T) {
 			err := processor{
 				tc.in,
 				out,
-				tc.sensitive,
+				tc.tolerant,
 			}.run()
 			assert.Equal(t, tc.exp, string(out.Bytes()), "expected output")
 			assert.Equal(t, tc.expErr, err, "expected error")

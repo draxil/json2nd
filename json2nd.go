@@ -1,20 +1,34 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 )
 
 func main() {
 
-	if len(os.Args) > 1 {
-		err := filemode(os.Args, os.Stdout, false)
+	tolerant, args := flags()
+
+	if len(args) > 0 {
+		err := filemode(args, os.Stdout, tolerant)
 		bail_if_err(err)
 		return
 	}
 
-	err := processor{os.Stdin, os.Stdout, false}.run()
+	err := processor{os.Stdin, os.Stdout, tolerant}.run()
 	bail_if_err(err)
+}
+
+func flags() (tolerant bool, args []string) {
+
+	tolerantFlagValue := flag.Bool("tolerant", false, "Be tolerant: if the structure found is not an array, output it anyway without translation")
+
+	flag.Parse()
+
+	args = flag.Args()
+
+	return *tolerantFlagValue, args
 }
 
 func bail_if_err(e error) {

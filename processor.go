@@ -7,9 +7,9 @@ import (
 )
 
 type processor struct {
-	in        io.Reader
-	out       io.Writer
-	sensitive bool
+	in       io.Reader
+	out      io.Writer
+	tolerant bool
 }
 
 // TODO: sensitive
@@ -17,7 +17,8 @@ type processor struct {
 // TODO: filename mode
 // TODO: builds?
 // TODO: default to formatted
-// TODO: opt for unformatted
+// TODO: opt for unformatted (OR THE OTHER WAY AROUND?)
+// TODO: path to value?
 
 func (p processor) run() error {
 
@@ -43,11 +44,7 @@ func (p processor) run() error {
 	}
 
 	if msg[offset] != '[' {
-		_, err := p.out.Write(msg)
-		if err != nil {
-			return err
-		}
-		return nil
+		return p.handleNonArray(msg)
 	}
 
 	var bigArray []json.RawMessage
@@ -71,9 +68,29 @@ func (p processor) run() error {
 	return nil
 }
 
+func (p processor) handleNonArray(msg json.RawMessage) error {
+
+	if p.tolerant {
+		_, err := p.out.Write(msg)
+		if err != nil {
+			return err
+		}
+		return nil
+	} else {
+		return errNotArray()
+	}
+
+}
+
 func errNilInput() error {
 	return fmt.Errorf("nil input")
 }
+
+func errNotArray() error {
+	// FUTURE: indicate what it was?
+	return fmt.Errorf("expected structure to be an array")
+}
+
 func rawJSONErr(e error) error {
 	return fmt.Errorf("raw JSON decode error: %w", e)
 }

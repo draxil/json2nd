@@ -14,10 +14,10 @@ Like a lot of filter programs you can switch from using stdin to a list of filen
   json2nd large_array1.json large_array2.json > object_per_line.json
 #+end_src
 
-If the top level of the JSON is not an array then no conversion happens:
+Although by default if we don't find an array this will be an error, you can apply the -tolerant flag to have json2nd do nothing in this case. Useful if you want to lazily ensure that the structure isn't an array.
 
 #+begin_src sh
-  echo "{}" | json2nd > object.json # will contain {}
+  echo "{}" | json2nd -tolerant > object.json # will contain {}
 #+end_src
 
 TODO: version which errors
