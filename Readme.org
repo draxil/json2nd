@@ -39,9 +39,9 @@ Assuming your $GOBIN directory is somewhere in your $PATH it's as simple as:
 
 Maybe. Honesly would be getting beyond the simplicity of this thing, but I can see how it could be useful to some people. Bug me?
 
-** What about jq
+** What about jq?
 
-jq is great! And a lot of the time I'm running this so I can experimentally jq more quickly! But this is simpler to use as it's a single use tool, and should be faster than the equivilent jq (citation needed).  Sometimes you want UNIX philisiphy sometimes you need an atomic chainsaw. Why not have both.
+jq is great! And a lot of the time I'm running this so I can experimentally jq more quickly! But this is simpler to use as it's a single use tool, and should be faster than the equivalent jq (citation needed).  Sometimes you want UNIX philosophy sometimes you need an atomic chainsaw. Why not have both.
 
 * Author / credits
 
