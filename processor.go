@@ -44,7 +44,7 @@ func (p processor) run() error {
 	}
 
 	if msg[offset] != '[' {
-		return p.handleNonArray(msg)
+		return p.handleNonArray(msg, msg[offset])
 	}
 
 	var bigArray []json.RawMessage
@@ -54,7 +54,6 @@ func (p processor) run() error {
 	}
 
 	for _, v := range bigArray {
-		// TODO partial? how does that work again?
 		_, err := p.out.Write(v)
 		if err != nil {
 			return writeErr(err)
@@ -68,7 +67,7 @@ func (p processor) run() error {
 	return nil
 }
 
-func (p processor) handleNonArray(msg json.RawMessage) error {
+func (p processor) handleNonArray(msg json.RawMessage, clue byte) error {
 
 	if p.tolerant {
 		_, err := p.out.Write(msg)
@@ -77,18 +76,44 @@ func (p processor) handleNonArray(msg json.RawMessage) error {
 		}
 		return nil
 	} else {
-		return errNotArray()
+		return errNotArray(clue)
 	}
 
+}
+
+func guessJSONType(clue byte) string {
+
+	switch clue {
+	case '{':
+		return "object"
+	case '"':
+		return "string"
+	}
+
+	if clue >= '0' && clue <= '9' {
+		return "number"
+	}
+
+	return ""
 }
 
 func errNilInput() error {
 	return fmt.Errorf("nil input")
 }
 
-func errNotArray() error {
+func errNotArray(clue byte) error {
+	t := guessJSONType(clue)
+
+	if t != "" {
+		return errNotArrayWas(t)
+	}
+
 	// FUTURE: indicate what it was?
 	return fmt.Errorf("expected structure to be an array")
+}
+
+func errNotArrayWas(t string) error {
+	return fmt.Errorf("expected structure to be an array but found: %s", t)
 }
 
 func rawJSONErr(e error) error {

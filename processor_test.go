@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -32,7 +33,7 @@ func TestProcessor(t *testing.T) {
 			name:     "non-array default behaviour",
 			tolerant: false,
 			in:       sreader("{}"),
-			expErr:   errNotArray(),
+			expErr:   errNotArrayWas("object"),
 		},
 		{
 			name:     "non-array + leading whitespace + tolerant",
@@ -68,6 +69,33 @@ func TestProcessor(t *testing.T) {
 			}.run()
 			assert.Equal(t, tc.exp, string(out.Bytes()), "expected output")
 			assert.Equal(t, tc.expErr, err, "expected error")
+		})
+	}
+}
+
+func TestGuessJsonType(t *testing.T) {
+
+	cases := []struct {
+		in  byte
+		exp string
+	}{
+		{'{', "object"},
+		{'"', "string"},
+		{'5', "number"},
+		{'1', "number"},
+		{'0', "number"},
+		{'9', "number"},
+		{'x', ""},
+		{'\'', ""},
+		// we won't look for arrays:
+		{'[', ""},
+	}
+
+	for _, tc := range cases {
+		name := fmt.Sprintf("%c -> %s", tc.in, tc.exp)
+		t.Run(name, func(t *testing.T) {
+			get := guessJSONType(tc.in)
+			assert.Equal(t, tc.exp, get)
 		})
 	}
 }
