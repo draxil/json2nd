@@ -7,12 +7,14 @@ import (
 )
 
 type processor struct {
-	in       io.Reader
-	out      io.Writer
-	tolerant bool
+	in          io.Reader
+	out         io.Writer
+	expectArray bool
 }
 
-// TODO: sensitive
+// TODO: reconsider tolerant in view of http://ndjson.org/
+// TODO: dive down mode
+// TODO: peeky reader idea
 // TODO: prove buf
 // TODO: filename mode
 // TODO: builds?
@@ -69,7 +71,7 @@ func (p processor) run() error {
 
 func (p processor) handleNonArray(msg json.RawMessage, clue byte) error {
 
-	if p.tolerant {
+	if !p.expectArray {
 		_, err := p.out.Write(msg)
 		if err != nil {
 			return err

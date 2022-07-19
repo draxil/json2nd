@@ -22,7 +22,7 @@ func main() {
 
 func flags() (tolerant bool, args []string) {
 
-	tolerantFlagValue := flag.Bool("tolerant", false, "Be tolerant: if the structure found is not an array, output it anyway without translation")
+	tolerantFlagValue := flag.Bool("expect-array", false, "check that whatever we're processing is an array, and fail if not.")
 
 	flag.Parse()
 

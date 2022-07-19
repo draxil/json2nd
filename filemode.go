@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func filemode(files []string, out io.Writer, tolerant bool) error {
+func filemode(files []string, out io.Writer, expectArray bool) error {
 
 	for _, name := range files {
 		f, err := os.Open(name)
@@ -14,7 +14,7 @@ func filemode(files []string, out io.Writer, tolerant bool) error {
 			return fileOpenErr(name, err)
 		}
 
-		p := processor{f, out, tolerant}
+		p := processor{f, out, expectArray}
 		err = p.run()
 		if err != nil {
 			return fileProcessErr(name, err)

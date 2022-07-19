@@ -14,12 +14,9 @@ Like a lot of filter programs you can switch from using stdin to a list of filen
   json2nd large_array1.json large_array2.json > object_per_line.json
 #+end_src
 
-Although by default if we don't find an array this will be an error, you can apply the ~-tolerant~ flag to have ~json2nd~ do nothing in this case. Useful if you want to lazily ensure that the structure isn't an array.
+For more see [[./doc/other_usage.org][other usage scenarios]].
 
-#+begin_src sh
-  echo "{}" | json2nd -tolerant > object.json # will contain {}
-#+end_src
-
+# TODO: this stuff should get shunted to a subdoc.
 TODO: version which errors
 
 

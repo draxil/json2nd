@@ -13,39 +13,39 @@ import (
 func TestProcessor(t *testing.T) {
 
 	cases := []struct {
-		name     string
-		in       io.Reader
-		tolerant bool
-		exp      string
-		expErr   error
+		name        string
+		in          io.Reader
+		expectArray bool
+		exp         string
+		expErr      error
 	}{
 		{
 			name:   "nil reader",
 			expErr: errNilInput(),
 		},
 		{
-			name:     "non-array tolerant behaviour",
-			tolerant: true,
-			in:       sreader("{}"),
-			exp:      "{}",
+			name:        "non-array tolerant behaviour",
+			expectArray: false,
+			in:          sreader("{}"),
+			exp:         "{}",
 		},
 		{
-			name:     "non-array default behaviour",
-			tolerant: false,
-			in:       sreader("{}"),
-			expErr:   errNotArrayWas("object"),
+			name:        "non-array but expect one",
+			expectArray: true,
+			in:          sreader("{}"),
+			expErr:      errNotArrayWas("object"),
 		},
 		{
-			name:     "non-array + leading whitespace + tolerant",
-			tolerant: true,
-			in:       sreader("   \r\n{}"),
-			exp:      "{}",
+			name:        "non-array + leading whitespace + tolerant",
+			expectArray: false,
+			in:          sreader("   \r\n{}"),
+			exp:         "{}",
 		},
 		{
-			name:     "just whitespace + tolerant",
-			tolerant: true,
-			in:       sreader("           "),
-			expErr:   rawJSONErr(io.EOF),
+			name:        "just whitespace + tolerant",
+			expectArray: false,
+			in:          sreader("           "),
+			expErr:      rawJSONErr(io.EOF),
 		},
 		{
 			name:   "just whitespace not tolerant",
@@ -65,7 +65,7 @@ func TestProcessor(t *testing.T) {
 			err := processor{
 				tc.in,
 				out,
-				tc.tolerant,
+				tc.expectArray,
 			}.run()
 			assert.Equal(t, tc.exp, string(out.Bytes()), "expected output")
 			assert.Equal(t, tc.expErr, err, "expected error")
