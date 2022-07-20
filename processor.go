@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -73,17 +74,14 @@ func (p processor) handlePath() error {
 
 func (p processor) handlePathNodes(nodes []string, obj map[string]json.RawMessage) error {
 
-	// ?????
+	// shouldn't be possible? But never say never.
 	if len(nodes) == 0 {
-		panic(0)
-		// TODO: ????
-		return nil
+		return fmt.Errorf("novel error 1: please report")
 	}
 
 	next, nodes := nodes[0], nodes[1:]
 	if next == "" {
-		// TODO COVER
-		return fmt.Errorf("bad blank path node, did you have a double dot?")
+		return errBlankPath()
 	}
 
 	target, exists := obj[next]
@@ -92,13 +90,19 @@ func (p processor) handlePathNodes(nodes []string, obj map[string]json.RawMessag
 	}
 
 	if len(nodes) == 0 {
-		// TODO type check:
-		var a []json.RawMessage
-		err := json.Unmarshal(target, &a)
-		if err != nil {
-			return arrayJSONErr(err)
+
+		clue, isArray := rawIsArray(target)
+
+		if isArray {
+			var a []json.RawMessage
+			err := json.Unmarshal(target, &a)
+			if err != nil {
+				return arrayJSONErr(err)
+			}
+			return p.handleArray(a)
 		}
-		return p.handleArray(a)
+
+		return p.handleNonArray(bytes.NewReader(target), clue)
 	}
 
 	var nextObj map[string]json.RawMessage
@@ -180,6 +184,10 @@ func errBadPath(chunk string) error {
 	return fmt.Errorf("path node did not exist: %s", chunk)
 }
 
+func errBlankPath() error {
+	return fmt.Errorf("bad blank path node, did you have a double dot?")
+}
+
 func rawJSONErr(e error) error {
 	return fmt.Errorf("raw JSON decode error: %w", e)
 }
@@ -202,4 +210,23 @@ func writeErr(e error) error {
 
 func peekErr(e error) error {
 	return fmt.Errorf("error looking for JSON: %w", e)
+}
+
+// TODO: merge this with the other?
+func rawIsArray(m json.RawMessage) (clue byte, is bool) {
+	for _, v := range m {
+		if isSpace(v) {
+			continue
+		}
+		if v == '[' {
+			return v, true
+		}
+		return v, false
+	}
+	return 0, false
+}
+
+// stolen from encoding/json
+func isSpace(c byte) bool {
+	return c <= ' ' && (c == ' ' || c == '\t' || c == '\r' || c == '\n')
 }

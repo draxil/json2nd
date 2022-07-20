@@ -80,6 +80,48 @@ func TestProcessor(t *testing.T) {
 			path: "something.else",
 			exp:  `"one"` + "\n" + `"two"` + "\n",
 		},
+		{
+			name:   "broken path - 1",
+			in:     sreader(`{"something":{}}`),
+			path:   ".",
+			expErr: errBlankPath(),
+		},
+		{
+			name:   "broken path - 2",
+			in:     sreader(`{"something":{}}`),
+			path:   "something.",
+			expErr: errBlankPath(),
+		},
+		{
+			name:   "broken path - 2",
+			in:     sreader(`{"something":{}}`),
+			path:   "something..",
+			expErr: errBlankPath(),
+		},
+		{
+			name:   "broken path - 3",
+			in:     sreader(`{"something":{}}`),
+			path:   "..",
+			expErr: errBlankPath(),
+		},
+		{
+			name:   "broken path - 4",
+			in:     sreader(`{"something":{}}`),
+			path:   " ",
+			expErr: errBadPath(" "),
+		},
+		{
+			name:   "broken path - 5",
+			in:     sreader(`{"something":{}}`),
+			path:   "\u200B",
+			expErr: errBadPath("\u200B"),
+		},
+		{
+			name: "path leads to non-array",
+			in:   sreader(`{"something":{}}`),
+			path: "something",
+			exp:  "{}", // TODO: NL
+		},
 	}
 
 	for _, tc := range cases {
