@@ -18,6 +18,7 @@ func TestProcessor(t *testing.T) {
 		path        string
 		expectArray bool
 		exp         string
+		errChecker  func(*testing.T, error)
 		expErr      error
 	}{
 		{
@@ -122,6 +123,18 @@ func TestProcessor(t *testing.T) {
 			path: "something",
 			exp:  "{}", // TODO: NL
 		},
+		{
+			name: "path leads to non-JSON",
+			in:   sreader(`{"something":boo}`),
+			path: "something",
+			errChecker: func(t *testing.T, e error) {
+				is := assert.Error(t, e)
+				if !is {
+					return
+				}
+				assert.Contains(t, e.Error(), "raw JSON decode error:", "looks like a JSON error")
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -134,7 +147,11 @@ func TestProcessor(t *testing.T) {
 				tc.path,
 			}.run()
 			assert.Equal(t, tc.exp, string(out.Bytes()), "expected output")
-			assert.Equal(t, tc.expErr, err, "expected error")
+			if tc.errChecker != nil {
+				tc.errChecker(t, err)
+			} else {
+				assert.Equal(t, tc.expErr, err, "expected error")
+			}
 		})
 	}
 }

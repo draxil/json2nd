@@ -97,6 +97,8 @@ func (p processor) handlePathNodes(nodes []string, obj map[string]json.RawMessag
 			var a []json.RawMessage
 			err := json.Unmarshal(target, &a)
 			if err != nil {
+				// TODO: hard to cover as would be caught earlier,
+				// but maybe when we change JSON method?
 				return arrayJSONErr(err)
 			}
 			return p.handleArray(a)
@@ -108,7 +110,8 @@ func (p processor) handlePathNodes(nodes []string, obj map[string]json.RawMessag
 	var nextObj map[string]json.RawMessage
 	err := json.Unmarshal(target, &nextObj)
 	if err != nil {
-		// TODO: cover
+		// TODO: hard to cover as would be caught earlier,
+		// but maybe when we change JSON method?
 		return fmt.Errorf("could not decode path node %s: %w", next, err)
 	}
 
