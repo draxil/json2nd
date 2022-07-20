@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/draxil/json2nd/internal/peeky"
 	"io"
 )
 
@@ -28,29 +29,21 @@ func (p processor) run() error {
 		return errNilInput()
 	}
 
-	var msg json.RawMessage
-	dec := json.NewDecoder(p.in)
+	pr := peeky.NewNonWSReader(p.in)
 
-	err := dec.Decode(&msg)
-	if err != nil {
-		return rawJSONErr(err)
+	dec := json.NewDecoder(pr)
+
+	c, err := pr.Peek()
+	if err != nil && err != io.EOF {
+		return peekErr(err)
 	}
 
-	var offset int
-	for i, v := range msg {
-		if !isSpace(v) {
-			offset = i
-			break
-		}
-		//TODO space only?
-	}
-
-	if msg[offset] != '[' {
-		return p.handleNonArray(msg, msg[offset])
+	if c != '[' {
+		return p.handleNonArray(pr, c)
 	}
 
 	var bigArray []json.RawMessage
-	err = json.Unmarshal(msg, &bigArray)
+	err = dec.Decode(&bigArray)
 	if err != nil {
 		return arrayJSONErr(err)
 	}
@@ -69,10 +62,10 @@ func (p processor) run() error {
 	return nil
 }
 
-func (p processor) handleNonArray(msg json.RawMessage, clue byte) error {
+func (p processor) handleNonArray(r io.Reader, clue byte) error {
 
 	if !p.expectArray {
-		_, err := p.out.Write(msg)
+		_, err := io.Copy(p.out, r)
 		if err != nil {
 			return err
 		}
@@ -121,6 +114,7 @@ func errNotArrayWas(t string) error {
 func rawJSONErr(e error) error {
 	return fmt.Errorf("raw JSON decode error: %w", e)
 }
+
 func arrayJSONErr(e error) error {
 	return fmt.Errorf("array JSON decode error: %w", e)
 }
@@ -128,6 +122,7 @@ func arrayJSONErr(e error) error {
 func readErr(e error) error {
 	return fmt.Errorf("read error: %w", e)
 }
+
 func seekErr(e error) error {
 	return fmt.Errorf("seek error: %w", e)
 }
@@ -136,7 +131,6 @@ func writeErr(e error) error {
 	return fmt.Errorf("write error: %w", e)
 }
 
-// stolen from encoding/json
-func isSpace(c byte) bool {
-	return c <= ' ' && (c == ' ' || c == '\t' || c == '\r' || c == '\n')
+func peekErr(e error) error {
+	return fmt.Errorf("error looking for JSON: %w", e)
 }

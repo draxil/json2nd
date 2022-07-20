@@ -39,18 +39,22 @@ func TestProcessor(t *testing.T) {
 			name:        "non-array + leading whitespace + tolerant",
 			expectArray: false,
 			in:          sreader("   \r\n{}"),
-			exp:         "{}",
+			// TODO: future, might strip or?
+			exp: "   \r\n{}",
 		},
 		{
+			// FUTURE: is this desirable?
 			name:        "just whitespace + tolerant",
 			expectArray: false,
 			in:          sreader("           "),
-			expErr:      rawJSONErr(io.EOF),
+			exp:         "           ",
+			expErr:      nil,
 		},
 		{
-			name:   "just whitespace not tolerant",
-			in:     sreader("           "),
-			expErr: rawJSONErr(io.EOF),
+			name:        "just whitespace not tolerant",
+			in:          sreader("           "),
+			expectArray: true,
+			expErr:      errNotArray(' '),
 		},
 		{
 			name: "simple use-case",
