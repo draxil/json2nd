@@ -46,15 +46,15 @@ func TestFileMode(t *testing.T) {
 			},
 			exp: `{"one":1}` + "\n" + `{"two":2}` + "\n" + `{"three":3}` + "\n",
 		},
-		{
-			name:  "with a path",
-			files: []string{"./testdata/simpleobj.json"},
-			checkErr: func(t *testing.T, e error) {
-				assert.NoError(t, e)
-			},
-			path: "x",
-			exp:  `1` + "\n" + `2` + "\n" + `4` + "\n",
-		},
+		// {
+		// 	name:  "with a path",
+		// 	files: []string{"./testdata/simpleobj.json"},
+		// 	checkErr: func(t *testing.T, e error) {
+		// 		assert.NoError(t, e)
+		// 	},
+		// 	path: "x",
+		// 	exp:  `1` + "\n" + `2` + "\n" + `4` + "\n",
+		// },
 		// TODO BAD FILE
 	}
 

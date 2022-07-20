@@ -1,12 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
-	"strings"
 
+	"github.com/buger/jsonparser"
 	"github.com/draxil/json2nd/internal/peeky"
 )
 
@@ -32,9 +31,9 @@ func (p processor) run() error {
 		return errNilInput()
 	}
 
-	if p.path != "" {
-		return p.handlePath()
-	}
+	// if p.path != "" {
+	// 	return p.handlePath()
+	// }
 
 	pr := peeky.NewNonWSReader(p.in)
 
@@ -47,76 +46,90 @@ func (p processor) run() error {
 		return p.handleNonArray(pr, c)
 	}
 
-	dec := json.NewDecoder(pr)
+	dat, err := io.ReadAll(pr)
+	// IGNORING ERROR FOR PT
 
-	var bigArray []json.RawMessage
-	err = dec.Decode(&bigArray)
-	if err != nil {
-		return arrayJSONErr(err)
-	}
-
-	return p.handleArray(bigArray)
-}
-
-func (p processor) handlePath() error {
-	nodes := strings.Split(p.path, ".")
-
-	dec := json.NewDecoder(p.in)
-
-	var obj map[string]json.RawMessage
-	err := dec.Decode(&obj)
-	if err != nil {
-		return rawJSONErr(err)
-	}
-
-	return p.handlePathNodes(nodes, obj)
-}
-
-func (p processor) handlePathNodes(nodes []string, obj map[string]json.RawMessage) error {
-
-	// shouldn't be possible? But never say never.
-	if len(nodes) == 0 {
-		return fmt.Errorf("novel error 1: please report")
-	}
-
-	next, nodes := nodes[0], nodes[1:]
-	if next == "" {
-		return errBlankPath()
-	}
-
-	target, exists := obj[next]
-	if !exists {
-		return errBadPath(next)
-	}
-
-	if len(nodes) == 0 {
-
-		clue, isArray := rawIsArray(target)
-
-		if isArray {
-			var a []json.RawMessage
-			err := json.Unmarshal(target, &a)
-			if err != nil {
-				// TODO: hard to cover as would be caught earlier,
-				// but maybe when we change JSON method?
-				return arrayJSONErr(err)
-			}
-			return p.handleArray(a)
+	jsonparser.ArrayEach(dat, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+		_, err = p.out.Write(value)
+		if err != nil {
+			return
 		}
+		_, err = p.out.Write([]byte("\n"))
+		if err != nil {
+			return
+		}
+	})
+	// json	dec := json.NewDecoder(pr)
 
-		return p.handleNonArray(bytes.NewReader(target), clue)
-	}
+	// var bigArray []json.RawMessage
+	// err = dec.Decode(&bigArray)
+	// if err != nil {
+	// 	return arrayJSONErr(err)
+	// }
 
-	var nextObj map[string]json.RawMessage
-	err := json.Unmarshal(target, &nextObj)
-	if err != nil {
-		// TODO: hard to cover as would be caught earlier,
-		// but maybe when we change JSON method?
-		return fmt.Errorf("could not decode path node %s: %w", next, err)
-	}
-
-	return p.handlePathNodes(nodes, nextObj)
+	//return p.handleArray(bigArray)
+	return nil
 }
+
+// func (p processor) handlePath() error {
+// 	nodes := strings.Split(p.path, ".")
+
+// 	dec := json.NewDecoder(p.in)
+
+// 	var obj map[string]json.RawMessage
+// 	err := dec.Decode(&obj)
+// 	if err != nil {
+// 		return rawJSONErr(err)
+// 	}
+
+// 	return p.handlePathNodes(nodes, obj)
+// }
+
+// func (p processor) handlePathNodes(nodes []string, obj map[string]json.RawMessage) error {
+
+// 	// shouldn't be possible? But never say never.
+// 	if len(nodes) == 0 {
+// 		return fmt.Errorf("novel error 1: please report")
+// 	}
+
+// 	next, nodes := nodes[0], nodes[1:]
+// 	if next == "" {
+// 		return errBlankPath()
+// 	}
+
+// 	target, exists := obj[next]
+// 	if !exists {
+// 		return errBadPath(next)
+// 	}
+
+// 	if len(nodes) == 0 {
+
+// 		clue, isArray := rawIsArray(target)
+
+// 		if isArray {
+// 			var a []json.RawMessage
+// 			err := json.Unmarshal(target, &a)
+// 			if err != nil {
+// 				// TODO: hard to cover as would be caught earlier,
+// 				// but maybe when we change JSON method?
+// 				return arrayJSONErr(err)
+// 			}
+// 			return p.handleArray(a)
+// 		}
+
+// 		return p.handleNonArray(bytes.NewReader(target), clue)
+// 	}
+
+// 	var nextObj map[string]json.RawMessage
+// 	err := json.Unmarshal(target, &nextObj)
+// 	if err != nil {
+// 		// TODO: hard to cover as would be caught earlier,
+// 		// but maybe when we change JSON method?
+// 		return fmt.Errorf("could not decode path node %s: %w", next, err)
+// 	}
+
+// 	return p.handlePathNodes(nodes, nextObj)
+// }
 
 func (p processor) handleArray(a []json.RawMessage) error {
 

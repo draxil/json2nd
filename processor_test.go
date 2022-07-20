@@ -63,78 +63,78 @@ func TestProcessor(t *testing.T) {
 			in:   sreader(`[{"a":1},{"b":2}]`),
 			exp:  `{"a":1}` + "\n" + `{"b":2}` + "\n",
 		},
-		{
-			name:   "bad path",
-			in:     sreader(`{}`),
-			path:   "something",
-			expErr: errBadPath("something"),
-		},
-		{
-			name:   "bad path one down",
-			in:     sreader(`{"something":{}}`),
-			path:   "something.else",
-			expErr: errBadPath("else"),
-		},
-		{
-			name: "good simple path to string array",
-			in:   sreader(`{"something":{"else":["one", "two"]}}`),
-			path: "something.else",
-			exp:  `"one"` + "\n" + `"two"` + "\n",
-		},
-		{
-			name:   "broken path - 1",
-			in:     sreader(`{"something":{}}`),
-			path:   ".",
-			expErr: errBlankPath(),
-		},
-		{
-			name:   "broken path - 2",
-			in:     sreader(`{"something":{}}`),
-			path:   "something.",
-			expErr: errBlankPath(),
-		},
-		{
-			name:   "broken path - 2",
-			in:     sreader(`{"something":{}}`),
-			path:   "something..",
-			expErr: errBlankPath(),
-		},
-		{
-			name:   "broken path - 3",
-			in:     sreader(`{"something":{}}`),
-			path:   "..",
-			expErr: errBlankPath(),
-		},
-		{
-			name:   "broken path - 4",
-			in:     sreader(`{"something":{}}`),
-			path:   " ",
-			expErr: errBadPath(" "),
-		},
-		{
-			name:   "broken path - 5",
-			in:     sreader(`{"something":{}}`),
-			path:   "\u200B",
-			expErr: errBadPath("\u200B"),
-		},
-		{
-			name: "path leads to non-array",
-			in:   sreader(`{"something":{}}`),
-			path: "something",
-			exp:  "{}", // TODO: NL
-		},
-		{
-			name: "path leads to non-JSON",
-			in:   sreader(`{"something":boo}`),
-			path: "something",
-			errChecker: func(t *testing.T, e error) {
-				is := assert.Error(t, e)
-				if !is {
-					return
-				}
-				assert.Contains(t, e.Error(), "raw JSON decode error:", "looks like a JSON error")
-			},
-		},
+		// {
+		// 	name:   "bad path",
+		// 	in:     sreader(`{}`),
+		// 	path:   "something",
+		// 	expErr: errBadPath("something"),
+		// },
+		// {
+		// 	name:   "bad path one down",
+		// 	in:     sreader(`{"something":{}}`),
+		// 	path:   "something.else",
+		// 	expErr: errBadPath("else"),
+		// },
+		// {
+		// 	name: "good simple path to string array",
+		// 	in:   sreader(`{"something":{"else":["one", "two"]}}`),
+		// 	path: "something.else",
+		// 	exp:  `"one"` + "\n" + `"two"` + "\n",
+		// },
+		// {
+		// 	name:   "broken path - 1",
+		// 	in:     sreader(`{"something":{}}`),
+		// 	path:   ".",
+		// 	expErr: errBlankPath(),
+		// },
+		// {
+		// 	name:   "broken path - 2",
+		// 	in:     sreader(`{"something":{}}`),
+		// 	path:   "something.",
+		// 	expErr: errBlankPath(),
+		// },
+		// {
+		// 	name:   "broken path - 2",
+		// 	in:     sreader(`{"something":{}}`),
+		// 	path:   "something..",
+		// 	expErr: errBlankPath(),
+		// },
+		// {
+		// 	name:   "broken path - 3",
+		// 	in:     sreader(`{"something":{}}`),
+		// 	path:   "..",
+		// 	expErr: errBlankPath(),
+		// },
+		// {
+		// 	name:   "broken path - 4",
+		// 	in:     sreader(`{"something":{}}`),
+		// 	path:   " ",
+		// 	expErr: errBadPath(" "),
+		// },
+		// {
+		// 	name:   "broken path - 5",
+		// 	in:     sreader(`{"something":{}}`),
+		// 	path:   "\u200B",
+		// 	expErr: errBadPath("\u200B"),
+		// },
+		// {
+		// 	name: "path leads to non-array",
+		// 	in:   sreader(`{"something":{}}`),
+		// 	path: "something",
+		// 	exp:  "{}", // TODO: NL
+		// },
+		// {
+		// 	name: "path leads to non-JSON",
+		// 	in:   sreader(`{"something":boo}`),
+		// 	path: "something",
+		// 	errChecker: func(t *testing.T, e error) {
+		// 		is := assert.Error(t, e)
+		// 		if !is {
+		// 			return
+		// 		}
+		// 		assert.Contains(t, e.Error(), "raw JSON decode error:", "looks like a JSON error")
+		// 	},
+		// },
 	}
 
 	for _, tc := range cases {
