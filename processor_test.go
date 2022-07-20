@@ -15,6 +15,7 @@ func TestProcessor(t *testing.T) {
 	cases := []struct {
 		name        string
 		in          io.Reader
+		path        string
 		expectArray bool
 		exp         string
 		expErr      error
@@ -61,6 +62,24 @@ func TestProcessor(t *testing.T) {
 			in:   sreader(`[{"a":1},{"b":2}]`),
 			exp:  `{"a":1}` + "\n" + `{"b":2}` + "\n",
 		},
+		{
+			name:   "bad path",
+			in:     sreader(`{}`),
+			path:   "something",
+			expErr: errBadPath("something"),
+		},
+		{
+			name:   "bad path one down",
+			in:     sreader(`{"something":{}}`),
+			path:   "something.else",
+			expErr: errBadPath("else"),
+		},
+		{
+			name: "good simple path to string array",
+			in:   sreader(`{"something":{"else":["one", "two"]}}`),
+			path: "something.else",
+			exp:  `"one"` + "\n" + `"two"` + "\n",
+		},
 	}
 
 	for _, tc := range cases {
@@ -70,6 +89,7 @@ func TestProcessor(t *testing.T) {
 				tc.in,
 				out,
 				tc.expectArray,
+				tc.path,
 			}.run()
 			assert.Equal(t, tc.exp, string(out.Bytes()), "expected output")
 			assert.Equal(t, tc.expErr, err, "expected error")

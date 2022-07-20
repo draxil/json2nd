@@ -3,24 +3,26 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/draxil/json2nd/internal/peeky"
 	"io"
+	"strings"
+
+	"github.com/draxil/json2nd/internal/peeky"
 )
 
 type processor struct {
 	in          io.Reader
 	out         io.Writer
 	expectArray bool
+	path        string
 }
 
-// TODO: reconsider tolerant in view of http://ndjson.org/
 // TODO: dive down mode
-// TODO: peeky reader idea
+// TODO: detect where not an object more tidily in path mode
 // TODO: prove buf
-// TODO: filename mode
+// TODO: no error on bad path mode?
 // TODO: builds?
-// TODO: default to formatted
-// TODO: opt for unformatted (OR THE OTHER WAY AROUND?)
+// TODO: how should default be for formatting
+// TODO: opt for un-formatted (OR THE OTHER WAY AROUND?)
 // TODO: path to value?
 
 func (p processor) run() error {
@@ -29,9 +31,11 @@ func (p processor) run() error {
 		return errNilInput()
 	}
 
-	pr := peeky.NewNonWSReader(p.in)
+	if p.path != "" {
+		return p.handlePath()
+	}
 
-	dec := json.NewDecoder(pr)
+	pr := peeky.NewNonWSReader(p.in)
 
 	c, err := pr.Peek()
 	if err != nil && err != io.EOF {
@@ -42,13 +46,74 @@ func (p processor) run() error {
 		return p.handleNonArray(pr, c)
 	}
 
+	dec := json.NewDecoder(pr)
+
 	var bigArray []json.RawMessage
 	err = dec.Decode(&bigArray)
 	if err != nil {
 		return arrayJSONErr(err)
 	}
 
-	for _, v := range bigArray {
+	return p.handleArray(bigArray)
+}
+
+func (p processor) handlePath() error {
+	nodes := strings.Split(p.path, ".")
+
+	dec := json.NewDecoder(p.in)
+
+	var obj map[string]json.RawMessage
+	err := dec.Decode(&obj)
+	if err != nil {
+		return rawJSONErr(err)
+	}
+
+	return p.handlePathNodes(nodes, obj)
+}
+
+func (p processor) handlePathNodes(nodes []string, obj map[string]json.RawMessage) error {
+
+	// ?????
+	if len(nodes) == 0 {
+		panic(0)
+		// TODO: ????
+		return nil
+	}
+
+	next, nodes := nodes[0], nodes[1:]
+	if next == "" {
+		// TODO COVER
+		return fmt.Errorf("bad blank path node, did you have a double dot?")
+	}
+
+	target, exists := obj[next]
+	if !exists {
+		return errBadPath(next)
+	}
+
+	if len(nodes) == 0 {
+		// TODO type check:
+		var a []json.RawMessage
+		err := json.Unmarshal(target, &a)
+		if err != nil {
+			return arrayJSONErr(err)
+		}
+		return p.handleArray(a)
+	}
+
+	var nextObj map[string]json.RawMessage
+	err := json.Unmarshal(target, &nextObj)
+	if err != nil {
+		// TODO: cover
+		return fmt.Errorf("could not decode path node %s: %w", next, err)
+	}
+
+	return p.handlePathNodes(nodes, nextObj)
+}
+
+func (p processor) handleArray(a []json.RawMessage) error {
+
+	for _, v := range a {
 		_, err := p.out.Write(v)
 		if err != nil {
 			return writeErr(err)
@@ -109,6 +174,10 @@ func errNotArray(clue byte) error {
 
 func errNotArrayWas(t string) error {
 	return fmt.Errorf("expected structure to be an array but found: %s", t)
+}
+
+func errBadPath(chunk string) error {
+	return fmt.Errorf("path node did not exist: %s", chunk)
 }
 
 func rawJSONErr(e error) error {

@@ -14,6 +14,22 @@ Like a lot of filter programs you can switch from using stdin to a list of filen
   json2nd large_array1.json large_array2.json > object_per_line.json
 #+end_src
 
+If the array you want to "unpack" is just below the surface, say:
+
+#+begin_src json
+  {
+      "stuff": {
+	  "things" : [1, 2, 3]
+      }
+  }
+#+end_src
+
+Yoy cab use the -path flag to extract it:
+
+#+begin_src
+  json2nd -path stuff.things file.json
+#+end_src
+
 For more see [[./doc/other_usage.org][other usage scenarios]].
 
 * Installation
