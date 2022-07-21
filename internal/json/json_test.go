@@ -95,6 +95,46 @@ func TestWriteToTinyChunk(t *testing.T) {
 	assert.Equal(t, "[1,2,3,4]", out.String(), "output")
 }
 
+func TestWriteTo(t *testing.T) {
+
+	cases := []struct {
+		name    string
+		in      io.Reader
+		exp     string
+		expClue byte
+	}{
+		{
+			name:    "nested array",
+			in:      sread("  [[1],[2]] "),
+			exp:     "[[1],[2]]",
+			expClue: '[',
+		},
+		{
+			name:    "object array",
+			in:      sread("[{},{}] "),
+			exp:     "[{},{}]",
+			expClue: '[',
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			j := New(tc.in)
+			// lets have an awkward chunk for these
+			j.chunkSize = 3
+			clue, err := j.Next()
+			assert.Equal(t, tc.expClue, clue, "start")
+			assert.NoError(t, err, "no error on Next() call")
+
+			out := strings.Builder{}
+			n, err := j.WriteTo(&out)
+			assert.NoError(t, err, "no error on WriteTo")
+			assert.Equal(t, tc.exp, out.String(), "output")
+			assert.Equal(t, len(tc.exp), n, "n")
+		})
+	}
+}
+
 // WRITETO:
 // NEST ARRAYS
 // STRINGS WITH ARRAY CHARS

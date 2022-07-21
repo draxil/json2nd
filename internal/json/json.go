@@ -81,14 +81,23 @@ func (j *JSON) WriteTo(w io.Writer) (int, error) {
 	}
 
 	end := -1
+	closerBalance := 0
 	alreadyWritten := 0
 
 	for {
 		for ; j.idx < len(j.buf); j.idx++ {
 			b := j.buf[j.idx]
 			if b == closer {
+				if closerBalance > 0 {
+					closerBalance--
+					continue
+				}
+
 				end = j.idx
 				break
+			}
+			if b == start {
+				closerBalance++
 			}
 		}
 
@@ -96,7 +105,7 @@ func (j *JSON) WriteTo(w io.Writer) (int, error) {
 			break
 		}
 
-		n, err := w.Write(j.buf[startIdx:])
+		n, err := w.Write(j.buf[startIdx:j.bytes])
 		if err != nil {
 			return 0, err
 		}
