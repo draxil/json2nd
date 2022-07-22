@@ -192,6 +192,13 @@ func TestWriteTo(t *testing.T) {
 			exp:     `"]\""`,
 			expClue: '[',
 		},
+		{
+			name:    "target a string",
+			in:      sread(`   "1, 2, 3, 4" `),
+			delims:  true,
+			exp:     `"1, 2, 3, 4"`,
+			expClue: '"',
+		},
 	}
 
 	for _, tc := range cases {

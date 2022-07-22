@@ -32,6 +32,9 @@ func (j *JSON) data() (bool, error) {
 
 	var err error
 	j.bytes, err = j.r.Read(j.buf)
+	if err == io.EOF {
+		return false, nil
+	}
 	if err != nil {
 		return false, err
 	}
@@ -65,11 +68,14 @@ func closerFor(b byte) byte {
 		return ']'
 	case '{':
 		return '}'
+	case '"':
+		return '"'
 	}
 	return 0
 }
 
 func (j *JSON) WriteTo(w io.Writer, includeDeliminators bool) (int, error) {
+	// TODO: do we care about numbers, bools, null being json values? If not do we really care about strings?
 
 	// because Next() leaves us resting on the start
 	startIdx := j.idx
@@ -100,34 +106,49 @@ func (j *JSON) WriteTo(w io.Writer, includeDeliminators bool) (int, error) {
 		for ; j.idx < len(j.buf); j.idx++ {
 			b := j.buf[j.idx]
 
-			if inStr && b != '"' {
-				last = b
-				continue
-			}
-			if b == '"' {
-				if !inStr {
-					inStr = true
+			// TODO: FOR THE SANE VERSION NOT SO NESTED
+			if start != closer {
+				if inStr && b != '"' {
 					last = b
 					continue
 				}
-				if inStr && last != '\\' {
-					inStr = false
+				if b == '"' {
+					if !inStr {
+						inStr = true
+						last = b
+						continue
+					}
+					if inStr && last != '\\' {
+						inStr = false
+						last = b
+						continue
+					}
+				}
+
+				if b == closer {
+					if closerBalance > 0 {
+						closerBalance--
+						continue
+					}
 					last = b
-					continue
+					end = j.idx
+					break
+				}
+				if b == start {
+					closerBalance++
 				}
 			}
 
-			if b == closer {
-				if closerBalance > 0 {
-					closerBalance--
+			if start == closer {
+				if last == '\\' {
+					last = b
 					continue
 				}
-				last = b
-				end = j.idx
-				break
-			}
-			if b == start {
-				closerBalance++
+				if b == closer {
+					last = b
+					end = j.idx
+					break
+				}
 			}
 
 			last = b
