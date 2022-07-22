@@ -59,9 +59,14 @@ func (j *JSON) Next() (c byte, e error) {
 	return j.Next()
 }
 
-// TODO: proper implementation
 func closerFor(b byte) byte {
-	return ']'
+	switch b {
+	case '[':
+		return ']'
+	case '{':
+		return '}'
+	}
+	return 0
 }
 
 func (j *JSON) WriteTo(w io.Writer, includeDeliminators bool) (int, error) {

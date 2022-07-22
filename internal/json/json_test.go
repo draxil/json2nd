@@ -164,6 +164,20 @@ func TestWriteTo(t *testing.T) {
 			exp:     "{\"x\":{}}",
 			expClue: '[',
 		},
+		{
+			name:    "target: object",
+			in:      sread("  {\"x\":\"foo\"} "),
+			delims:  true,
+			exp:     "{\"x\":\"foo\"}",
+			expClue: '{',
+		},
+		{
+			name:    "target: object - no delims",
+			in:      sread("  {\"x\":\"foo\"} "),
+			delims:  false,
+			exp:     "\"x\":\"foo\"",
+			expClue: '{',
+		},
 	}
 
 	for _, tc := range cases {
