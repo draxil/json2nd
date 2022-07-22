@@ -178,6 +178,20 @@ func TestWriteTo(t *testing.T) {
 			exp:     "\"x\":\"foo\"",
 			expClue: '{',
 		},
+		{
+			name:    "closer appears inside a string",
+			in:      sread(`["]"]`),
+			delims:  false,
+			exp:     `"]"`,
+			expClue: '[',
+		},
+		{
+			name:    "escaped quotes in strings",
+			in:      sread(`["]\""]`),
+			delims:  false,
+			exp:     `"]\""`,
+			expClue: '[',
+		},
 	}
 
 	for _, tc := range cases {
@@ -205,3 +219,5 @@ func TestWriteTo(t *testing.T) {
 // OBJECT
 // NESTED OBJECT
 // STRING
+// INVALID JSON
+// WILL BE thing at a time so we can get the newlines in

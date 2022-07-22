@@ -92,22 +92,45 @@ func (j *JSON) WriteTo(w io.Writer, includeDeliminators bool) (int, error) {
 	end := -1
 	closerBalance := 0
 	alreadyWritten := 0
+	inStr := false
+	last := byte(0)
 
+	// TODO: LESS BIG AND DUMB
 	for {
 		for ; j.idx < len(j.buf); j.idx++ {
 			b := j.buf[j.idx]
+
+			if inStr && b != '"' {
+				last = b
+				continue
+			}
+			if b == '"' {
+				if !inStr {
+					inStr = true
+					last = b
+					continue
+				}
+				if inStr && last != '\\' {
+					inStr = false
+					last = b
+					continue
+				}
+			}
+
 			if b == closer {
 				if closerBalance > 0 {
 					closerBalance--
 					continue
 				}
-
+				last = b
 				end = j.idx
 				break
 			}
 			if b == start {
 				closerBalance++
 			}
+
+			last = b
 		}
 
 		if end != -1 {
