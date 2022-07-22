@@ -42,6 +42,10 @@ func (j *JSON) data() (bool, error) {
 	return true, nil
 }
 
+func (j *JSON) MoveOff() {
+	j.idx++
+}
+
 func (j *JSON) Next() (c byte, e error) {
 	is, err := j.data()
 
@@ -74,7 +78,7 @@ func closerFor(b byte) byte {
 	return 0
 }
 
-func (j *JSON) WriteTo(w io.Writer, includeDeliminators bool) (int, error) {
+func (j *JSON) WriteCurrentTo(w io.Writer, includeDeliminators bool) (int, error) {
 	// TODO: do we care about numbers, bools, null being json values? If not do we really care about strings?
 
 	// because Next() leaves us resting on the start

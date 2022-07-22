@@ -73,7 +73,7 @@ func TestWriteToSimple(t *testing.T) {
 	assert.Equal(t, byte('['), get, "start")
 	assert.NoError(t, err, "no error on Next() call")
 
-	n, err := j.WriteTo(&out, true)
+	n, err := j.WriteCurrentTo(&out, true)
 	assert.NoError(t, err, "no error on WriteTo")
 	assert.Equal(t, 9, n, "n")
 	assert.Equal(t, "[1,2,3,4]", out.String(), "output")
@@ -89,7 +89,7 @@ func TestWriteToTinyChunk(t *testing.T) {
 	assert.Equal(t, byte('['), get, "start")
 	assert.NoError(t, err, "no error on Next() call")
 
-	n, err := j.WriteTo(&out, true)
+	n, err := j.WriteCurrentTo(&out, true)
 	assert.NoError(t, err, "no error on WriteTo")
 	assert.Equal(t, 9, n, "n")
 	assert.Equal(t, "[1,2,3,4]", out.String(), "output")
@@ -105,7 +105,7 @@ func TestWriteToTinyChunkNoDelims(t *testing.T) {
 	assert.Equal(t, byte('['), get, "start")
 	assert.NoError(t, err, "no error on Next() call")
 
-	n, err := j.WriteTo(&out, false)
+	n, err := j.WriteCurrentTo(&out, false)
 	assert.NoError(t, err, "no error on WriteTo")
 	assert.Equal(t, 7, n, "n")
 	assert.Equal(t, "1,2,3,4", out.String(), "output")
@@ -121,13 +121,13 @@ func TestWriteToByteChunkNoDelims(t *testing.T) {
 	assert.Equal(t, byte('['), get, "start")
 	assert.NoError(t, err, "no error on Next() call")
 
-	n, err := j.WriteTo(&out, false)
+	n, err := j.WriteCurrentTo(&out, false)
 	assert.NoError(t, err, "no error on WriteTo")
 	assert.Equal(t, 7, n, "n")
 	assert.Equal(t, "1,2,3,4", out.String(), "output")
 }
 
-func TestWriteTo(t *testing.T) {
+func TestCurrentWriteTo(t *testing.T) {
 
 	cases := []struct {
 		name    string
@@ -211,7 +211,7 @@ func TestWriteTo(t *testing.T) {
 			assert.NoError(t, err, "no error on Next() call")
 
 			out := strings.Builder{}
-			n, err := j.WriteTo(&out, tc.delims)
+			n, err := j.WriteCurrentTo(&out, tc.delims)
 			assert.NoError(t, err, "no error on WriteTo")
 			assert.Equal(t, tc.exp, out.String(), "output")
 			assert.Equal(t, len(tc.exp), n, "n")
