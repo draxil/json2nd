@@ -64,7 +64,7 @@ func closerFor(b byte) byte {
 	return ']'
 }
 
-func (j *JSON) WriteTo(w io.Writer) (int, error) {
+func (j *JSON) WriteTo(w io.Writer, includeDeliminators bool) (int, error) {
 
 	// because Next() leaves us resting on the start
 	startIdx := j.idx
@@ -73,6 +73,10 @@ func (j *JSON) WriteTo(w io.Writer) (int, error) {
 
 	if start == 0 {
 		return 0, errNoObject()
+	}
+
+	if !includeDeliminators {
+		startIdx++
 	}
 
 	closer := closerFor(start)
@@ -112,7 +116,6 @@ func (j *JSON) WriteTo(w io.Writer) (int, error) {
 		alreadyWritten += n
 		startIdx = 0
 
-		// TODO: will chuck data
 		more, err := j.data()
 		if err != nil {
 			// TODO: context?
@@ -126,6 +129,10 @@ func (j *JSON) WriteTo(w io.Writer) (int, error) {
 	if end == -1 {
 		// TODO: clarity?
 		return 0, io.EOF
+	}
+
+	if !includeDeliminators {
+		end--
 	}
 
 	os := j.buf[startIdx : end+1]

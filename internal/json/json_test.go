@@ -73,7 +73,7 @@ func TestWriteToSimple(t *testing.T) {
 	assert.Equal(t, byte('['), get, "start")
 	assert.NoError(t, err, "no error on Next() call")
 
-	n, err := j.WriteTo(&out)
+	n, err := j.WriteTo(&out, true)
 	assert.NoError(t, err, "no error on WriteTo")
 	assert.Equal(t, 9, n, "n")
 	assert.Equal(t, "[1,2,3,4]", out.String(), "output")
@@ -89,10 +89,42 @@ func TestWriteToTinyChunk(t *testing.T) {
 	assert.Equal(t, byte('['), get, "start")
 	assert.NoError(t, err, "no error on Next() call")
 
-	n, err := j.WriteTo(&out)
+	n, err := j.WriteTo(&out, true)
 	assert.NoError(t, err, "no error on WriteTo")
 	assert.Equal(t, 9, n, "n")
 	assert.Equal(t, "[1,2,3,4]", out.String(), "output")
+}
+
+func TestWriteToTinyChunkNoDelims(t *testing.T) {
+	out := strings.Builder{}
+	in := sread("    \n [1,2,3,4] ")
+	j := New(in)
+	j.chunkSize = 2
+
+	get, err := j.Next()
+	assert.Equal(t, byte('['), get, "start")
+	assert.NoError(t, err, "no error on Next() call")
+
+	n, err := j.WriteTo(&out, false)
+	assert.NoError(t, err, "no error on WriteTo")
+	assert.Equal(t, 7, n, "n")
+	assert.Equal(t, "1,2,3,4", out.String(), "output")
+}
+
+func TestWriteToByteChunkNoDelims(t *testing.T) {
+	out := strings.Builder{}
+	in := sread("    \n [1,2,3,4] ")
+	j := New(in)
+	j.chunkSize = 1
+
+	get, err := j.Next()
+	assert.Equal(t, byte('['), get, "start")
+	assert.NoError(t, err, "no error on Next() call")
+
+	n, err := j.WriteTo(&out, false)
+	assert.NoError(t, err, "no error on WriteTo")
+	assert.Equal(t, 7, n, "n")
+	assert.Equal(t, "1,2,3,4", out.String(), "output")
 }
 
 func TestWriteTo(t *testing.T) {
@@ -100,19 +132,36 @@ func TestWriteTo(t *testing.T) {
 	cases := []struct {
 		name    string
 		in      io.Reader
+		delims  bool
 		exp     string
 		expClue byte
 	}{
 		{
 			name:    "nested array",
 			in:      sread("  [[1],[2]] "),
+			delims:  true,
 			exp:     "[[1],[2]]",
 			expClue: '[',
 		},
 		{
 			name:    "object array",
 			in:      sread("[{},{}] "),
+			delims:  true,
 			exp:     "[{},{}]",
+			expClue: '[',
+		},
+		{
+			name:    "no delims",
+			in:      sread("[{},{}] "),
+			delims:  false,
+			exp:     "{},{}",
+			expClue: '[',
+		},
+		{
+			name:    "object array + keys",
+			in:      sread("  [{\"x\":{}}] "),
+			delims:  false,
+			exp:     "{\"x\":{}}",
 			expClue: '[',
 		},
 	}
@@ -127,7 +176,7 @@ func TestWriteTo(t *testing.T) {
 			assert.NoError(t, err, "no error on Next() call")
 
 			out := strings.Builder{}
-			n, err := j.WriteTo(&out)
+			n, err := j.WriteTo(&out, tc.delims)
 			assert.NoError(t, err, "no error on WriteTo")
 			assert.Equal(t, tc.exp, out.String(), "output")
 			assert.Equal(t, len(tc.exp), n, "n")
