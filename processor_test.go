@@ -159,6 +159,31 @@ func TestProcessor(t *testing.T) {
 			path: "something",
 			exp:  "12.12\n",
 		},
+		{
+			name: "path leads to a bool (true)",
+			in:   sreader(`{"something":  true  }`),
+			path: "something",
+			exp:  "true\n",
+		},
+		{
+			name: "path leads to a bool (false)",
+			in:   sreader(`{"something":  false  }`),
+			path: "something",
+			exp:  "false\n",
+		},
+		{
+			name: "path leads to a null",
+			in:   sreader(`{"something":  null  }`),
+			path: "something",
+			exp:  "null\n",
+		},
+		{
+			name:   "path leads to a bool (true), but with garbage afterwards",
+			in:     sreader(`{"something":  truex  }`),
+			path:   "something",
+			exp:    "",
+			expErr: json.ErrBadValue{"truex"},
+		},
 	}
 
 	for _, tc := range cases {

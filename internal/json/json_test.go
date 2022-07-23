@@ -221,6 +221,27 @@ func TestCurrentWriteTo(t *testing.T) {
 			exp:     "12.12",
 			expClue: '1',
 		},
+		{
+			name:    "target is true",
+			in:      sread(`true`),
+			delims:  false,
+			exp:     "true",
+			expClue: 't',
+		},
+		{
+			name:    "target is false",
+			in:      sread(`false`),
+			delims:  false,
+			exp:     "false",
+			expClue: 'f',
+		},
+		{
+			name:    "target is null",
+			in:      sread(`null`),
+			delims:  false,
+			exp:     "null",
+			expClue: 'n',
+		},
 	}
 
 	for _, tc := range cases {

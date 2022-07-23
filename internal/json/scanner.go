@@ -112,6 +112,7 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 	return max, nil
 }
 
+// TODO: we also have ErrBadJSONValue :)
 type ErrBadJSONValue struct {
 	Char byte
 }

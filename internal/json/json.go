@@ -186,6 +186,9 @@ func (j *JSON) WriteCurrentTo(w io.Writer, includeDeliminators bool) (int, error
 	if start >= '0' && start <= '9' {
 		return j.writeCurrentNumber(w)
 	}
+	if start == 't' || start == 'f' || start == 'n' {
+		return j.writeKeywordValue(w)
+	}
 
 	scanner := NewScanState(start)
 
@@ -277,6 +280,50 @@ func (j JSON) writeCurrentNumber(w io.Writer) (int, error) {
 	return written, nil
 }
 
+func (j JSON) writeKeywordValue(w io.Writer) (int, error) {
+	end := false
+	stored := 0
+	written := 0
+	var keyword [5]byte
+
+	for !end {
+		for ; j.idx < j.bytes && stored < 5; j.idx++ {
+			c := j.buf[j.idx]
+			if !(c >= 'a' && c <= 'z') {
+				end = true
+				break
+			} else {
+				keyword[stored] = c
+				stored++
+			}
+		}
+
+		if !end && j.idx == j.bytes {
+			more, err := j.data()
+			if err != nil {
+				return 0, err
+			}
+			if !more {
+				end = true
+			}
+		}
+
+		if end || stored == 5 {
+			keyslice := keyword[:stored]
+			keystring := string(keyslice)
+			if !(keystring == "true" ||
+				keystring == "false" ||
+				keystring == "null") {
+				return 0, ErrBadValue{string(keyword[:])}
+			}
+
+			return w.Write(keyslice)
+		}
+	}
+
+	return written, nil
+}
+
 func errNoObject() error {
 	// TODO: internal error system?
 	return ErrInternal{fmt.Errorf("no current object")}
@@ -289,6 +336,14 @@ type ErrInternal struct {
 
 func (e ErrInternal) Error() string {
 	return fmt.Sprintf("internal error: %v", e.inner)
+}
+
+type ErrBadValue struct {
+	Value string
+}
+
+func (e ErrBadValue) Error() string {
+	return fmt.Sprintf("bad value: %s", e.Value)
 }
 
 func isSpace(c byte) bool {
