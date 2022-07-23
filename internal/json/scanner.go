@@ -2,6 +2,7 @@ package json
 
 import (
 	"bytes"
+	"fmt"
 )
 
 type state struct {
@@ -40,6 +41,10 @@ func (s *state) seekFor(key string) {
 }
 
 func (s *state) scan(chunk []byte, idx, max int) (int, error) {
+
+	if s.closer == 0 {
+		return 0, ErrBadJSONValue{s.in}
+	}
 
 	for ; idx < max; idx++ {
 		b := chunk[idx]
@@ -105,4 +110,12 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 	}
 
 	return max, nil
+}
+
+type ErrBadJSONValue struct {
+	Char byte
+}
+
+func (e ErrBadJSONValue) Error() string {
+	return fmt.Sprintf("don't know how to process JSON value starting with: %c", e.Char)
 }

@@ -39,22 +39,15 @@ func (p processor) run() error {
 	if err != nil && err != io.EOF {
 		return peekErr(err)
 	}
-
-	if c != '[' {
-		panic("not implemented on internal json branch")
-		//return p.handleNonArray(pr, c)
+	if err == io.EOF {
+		return errNoJSON()
 	}
 
-	// TODO BACK IN FUNC
+	if c != '[' {
+		return p.handleNonArray(js, c)
+	}
 
 	return p.handleArray(js)
-	// var bigArray []json.RawMessage
-	// err = dec.Decode(&bigArray)
-	// if err != nil {
-	// 	return arrayJSONErr(err)
-	// }
-
-	// return p.handleArray(bigArray)
 }
 
 func (p processor) handlePath(scan *json.JSON) error {
@@ -76,7 +69,6 @@ func (p processor) handlePathNodes(nodes []string, scan *json.JSON) error {
 
 	found, err := scan.ScanForKeyValue(next)
 	if err != nil {
-		// TODO:
 		return err
 	}
 	if !found {
@@ -95,40 +87,22 @@ func (p processor) handlePathNodes(nodes []string, scan *json.JSON) error {
 			return p.handleArray(scan)
 		}
 
-		panic("NDY")
-		//return p.handleNonArray(scan, clue)
+		return p.handleNonArray(scan, clue)
 	}
 	return p.handlePathNodes(nodes, scan)
 }
 
-// 	var nextObj map[string]json.RawMessage
-// 	err := json.Unmarshal(target, &nextObj)
-// 	if err != nil {
-// 		// TODO: hard to cover as would be caught earlier,
-// 		// but maybe when we change JSON method?
-// 		return fmt.Errorf("could not decode path node %s: %w", next, err)
-// 	}
-
-// 	return p.handlePathNodes(nodes, nextObj)
-// }
 func (p processor) handleArray(js *json.JSON) error {
 
 	// TODO more in json
 
 	// shift the cursor from the start of the array:
 	js.MoveOff()
+
 	for {
-		nc, err := js.Next()
+		_, err := js.Next()
 		if err != nil {
-			// TODO WHEN IN FUNC BETTER ERRS
-			return arrayJSONErr(err)
-		}
-		if nc == ',' {
-			js.MoveOff()
-			continue
-		}
-		if nc == ']' {
-			break
+			return err
 		}
 
 		n, err := js.WriteCurrentTo(p.out, true)
@@ -144,23 +118,45 @@ func (p processor) handleArray(js *json.JSON) error {
 		if n == 0 {
 			break
 		}
-		js.MoveOff()
+
+		c, err := js.Next()
+		if err != nil {
+			return err
+		}
+
+		if c == ']' {
+			return nil
+		}
+		if c == ',' {
+			js.MoveOff()
+		} else {
+			return fmt.Errorf("unexpected character: %c", c)
+		}
+
 	}
 	return nil
 }
 
-func (p processor) handleNonArray(r io.Reader, clue byte) error {
+func (p processor) handleNonArray(j *json.JSON, clue byte) error {
 
-	if !p.expectArray {
-		_, err := io.Copy(p.out, r)
+	if p.expectArray {
+		return errNotArrayWas(guessJSONType(j.Peek()))
+	}
+	if !json.SaneValueStart(clue) {
+		return errPathLeadToBadValue(clue)
+	}
+
+	n, err := j.WriteCurrentTo(p.out, true)
+	if err != nil {
+		return err
+	}
+	if n > 0 {
+		_, err := p.out.Write([]byte("\n"))
 		if err != nil {
 			return err
 		}
-		return nil
-	} else {
-		return errNotArray(clue)
 	}
-
+	return nil
 }
 
 func guessJSONType(clue byte) string {
@@ -204,6 +200,13 @@ func errBadPath(chunk string) error {
 
 func errBlankPath() error {
 	return fmt.Errorf("bad blank path node, did you have a double dot?")
+}
+func errPathLeadToBadValue(start byte) error {
+	return fmt.Errorf("path lead to bad value start: %c", start)
+}
+
+func errNoJSON() error {
+	return fmt.Errorf("no JSON data found")
 }
 
 func rawJSONErr(e error) error {

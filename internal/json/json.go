@@ -1,6 +1,7 @@
 package json
 
 // TODO: MASTER OFFSET FOR ERRORS?
+// TODO: unicode considerations
 
 import (
 	"fmt"
@@ -42,6 +43,16 @@ func (j *JSON) data() (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (j *JSON) Peek() byte {
+	if j.buf == nil {
+		return 0
+	}
+	if !(j.idx < len(j.buf)) {
+		return 0
+	}
+	return j.buf[j.idx]
 }
 
 func (j *JSON) MoveOff() {
@@ -155,7 +166,7 @@ func (j *JSON) ScanForKey(k string) (bool, error) {
 }
 
 type ErrScanNotObject struct {
-	on byte
+	On byte
 }
 
 func (ErrScanNotObject) Error() string {
@@ -242,4 +253,10 @@ func (e ErrInternal) Error() string {
 
 func isSpace(c byte) bool {
 	return c <= ' ' && (c == ' ' || c == '\t' || c == '\r' || c == '\n')
+}
+
+func SaneValueStart(c byte) bool {
+	closer := closerFor(c)
+	return closer != 0
+
 }

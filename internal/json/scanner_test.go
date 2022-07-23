@@ -46,7 +46,6 @@ func TestScanSubObjectDoesNotClose(t *testing.T) {
 
 func TestScanCloseBeforeEnd(t *testing.T) {
 	s := NewScanState('{')
-	//{"subobject":21}
 	buf := []byte(`"x":"y"}      foo`)
 	pos, _ := s.scan(buf, 0, len(buf))
 	assert.False(t, s.open)
@@ -70,6 +69,13 @@ func TestEscapedSubStringDoesNotClose(t *testing.T) {
 	assert.True(t, s.open)
 	s.scan([]byte{'"'}, 0, 1)
 	assert.False(t, s.open)
+}
+
+func TestScanOnChar(t *testing.T) {
+	s := NewScanState('Z')
+	buf := []byte(`x\"`)
+	_, err := s.scan(buf, 0, len(buf))
+	assert.Equal(t, ErrBadJSONValue{'Z'}, err)
 }
 
 func TestScanForSimple(t *testing.T) {
