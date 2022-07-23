@@ -30,7 +30,7 @@ Yoy cab use the -path flag to extract it:
   json2nd -path stuff.things file.json
 #+end_src
 
-For more see [[./doc/other_usage.org][other usage scenarios]].
+For more see [[./doc/other_usage.org][other usage scenarios]], and [[./doc/json_considerations.org][JSON considerations]].
 
 * Installation
 
@@ -50,7 +50,13 @@ Maybe. Honesly would be getting beyond the simplicity of this thing, but I can s
 
 ** What about jq?
 
-~jq~ is great! And a lot of the time I'm running this so I can experimentally ~jq~ more quickly! But this is simpler to use as it's a single use tool, and should be faster than the equivalent jq (citation needed).  Sometimes you want UNIX philosophy sometimes you need an atomic chainsaw. Why not have both.
+~jq~ is great! And a lot of the time I'm running this so I can slice a file up so I can run ~jq~ more quickly! This is simpler to use as it's a single-use tool, and should be faster than ~jq~. Also as a lot of the use case for this is people sending me inadvisably large files, we don't load the whole thing into memory. ~jq~ unavoidably does and it kills my machine on some of my 4G+ (I kid you not) examples.
+
+Sometimes you want UNIX philosophy sometimes you need an atomic chainsaw. Why not have both.
+
+** Why aren't you using a JSON parser?
+
+Originally I did, but they were either slow or insisted on having the entire file in memory, and I want this to cope with very large files.
 
 * Author / credits
 

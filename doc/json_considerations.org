@@ -1,0 +1,5 @@
+#+TITLE: json2nd - JSON considerations
+
+json2nd uses a fairly lazy JSON scanner rather than a proper parser. Thus it may not behave fantastically with invalid JSON. If you're having odd issues it's worth running your file vs a rigerous JSON parser, such as ~jq~'s.
+
+Additionally not much work has been done so far on the wider reaches of the utf-8 character set, it should be fine with it but may report some errors strangely as this is a very byte oriented tool. Pactches (that don't make performance sacrifices) welcome.

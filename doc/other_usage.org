@@ -8,3 +8,12 @@ The main use case of this tool is to unpack arrays, but as NDJSON can be any typ
   echo "{}" | json2nd -expect-array > object.json # will error
 #+end_src
 
+* A cheap value finder
+
+Although not it's true purpose:
+
+#+begin_src sh
+  json2nd -path thing.i.want file.json
+#+end_src
+
+is quite easy to remember when you want to grab any old thing from some json.
