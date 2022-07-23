@@ -44,6 +44,12 @@ Assuming your ~$GOBIN~ directory is somewhere in your ~$PATH~ it's as simple as:
 
 * Plans / what about XYZ?
 
+** Why are your error mesages so bad?
+
+Since we moved off a proper parser the first priorities were: speed, memory use and working.
+
+Being helpful when it goes wrong is pretty much the next goal.
+
 ** Windows style line endings ("\r\n")?
 
 Maybe. Honesly would be getting beyond the simplicity of this thing, but I can see how it could be useful to some people. Bug me?
@@ -56,7 +62,7 @@ Sometimes you want UNIX philosophy sometimes you need an atomic chainsaw. Why no
 
 ** Why aren't you using a JSON parser?
 
-Originally I did, but they were either slow or insisted on having the entire file in memory, and I want this to cope with very large files.
+Originally I did, but they were either slow or insisted on having the entire file in memory, and I want this to cope with very large files. See also [[./doc/json_considerations.org][JSON considerations]].
 
 * Author / credits
 
