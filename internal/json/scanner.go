@@ -44,7 +44,8 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 	for ; idx < max; idx++ {
 		b := chunk[idx]
 
-		if isSpace(b) {
+		// is whitespace?
+		if b <= ' ' && (b == ' ' || b == '\t' || b == '\r' || b == '\n') {
 			s.last = b
 			continue
 		}
@@ -78,7 +79,7 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 					s.key = true
 				}
 			}
-		} else if s.key && s.seeking {
+		} else if s.seeking && s.key {
 			// TODO: maybe don't care if not matching so far or something?
 			s.keybuf.WriteByte(b)
 		}
@@ -87,6 +88,9 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 			if b == s.closer {
 				if s.closerBalance == 0 {
 					s.open = false
+					s.last = b
+					s.lastNotWs = b
+					return idx, nil
 				} else {
 					s.closerBalance--
 				}
@@ -95,13 +99,9 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 				s.closerBalance++
 			}
 		}
+
 		s.last = b
 		s.lastNotWs = b
-
-		if !s.open {
-			return idx, nil
-		}
-
 	}
 
 	return max, nil
