@@ -184,6 +184,27 @@ func TestProcessor(t *testing.T) {
 			exp:    "",
 			expErr: json.ErrBadValue{"truex"},
 		},
+		// technically invalid JSON, but we're not a real parser ;)
+		{
+			name: "path leads to a bool (true), but with comma afterwards",
+			in:   sreader(`{"something":  true,  }`),
+			path: "something",
+			exp:  "true\n",
+		},
+
+		{
+			name:   "path goes through a null",
+			in:     sreader(`{"something":  null }`),
+			path:   "something.else",
+			expErr: json.ErrScanNotObject{On: 'n'},
+		},
+
+		{
+			name:   "path goes through a bool",
+			in:     sreader(`{"something":  true }`),
+			path:   "something.else",
+			expErr: json.ErrScanNotObject{On: 't'},
+		},
 	}
 
 	for _, tc := range cases {

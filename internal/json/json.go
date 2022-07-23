@@ -2,6 +2,8 @@ package json
 
 // TODO: MASTER OFFSET FOR ERRORS?
 // TODO: unicode considerations
+// TODO: hex numbers?
+// TODO: other odd type stuff, single quoted gubbins apparently?
 
 import (
 	"fmt"
