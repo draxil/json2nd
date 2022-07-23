@@ -1,6 +1,7 @@
 package json
 
 import (
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -199,6 +200,27 @@ func TestCurrentWriteTo(t *testing.T) {
 			exp:     `"1, 2, 3, 4"`,
 			expClue: '"',
 		},
+		{
+			name:    "target is a number",
+			in:      sread(`12`),
+			delims:  false,
+			exp:     "12",
+			expClue: '1',
+		},
+		{
+			name:    "target is a number - with trailing stuff",
+			in:      sread(`12,`),
+			delims:  false,
+			exp:     "12",
+			expClue: '1',
+		},
+		{
+			name:    "target is a floating point number",
+			in:      sread(`12.12`),
+			delims:  false,
+			exp:     "12.12",
+			expClue: '1',
+		},
 	}
 
 	for _, tc := range cases {
@@ -294,12 +316,40 @@ func TestScanForKeyValueSimple(t *testing.T) {
 	assert.Equal(t, `"v"`, b.String(), "value")
 }
 
-// WRITETO:
-// NEST ARRAYS
-// STRINGS WITH ARRAY CHARS
-// STRINGS WITH ESCAPE QUOTES
-// OBJECT
-// NESTED OBJECT
-// STRING
-// INVALID JSON
-// WILL BE thing at a time so we can get the newlines in
+func TestSaneValueStart(t *testing.T) {
+
+	cases := []struct {
+		in  byte
+		exp bool
+	}{
+		{'{', true},
+		{'}', false},
+		{'[', true},
+		{']', false},
+		{'b', false},
+		{'"', true},
+		{'n', true},
+		{'x', false},
+		{'f', true},
+		{'0', true},
+		{'1', true},
+		{'2', true},
+		{'3', true},
+		{'4', true},
+		{'5', true},
+		{'6', true},
+		{'7', true},
+		{'8', true},
+		{'9', true},
+		{'@', false},
+		{'\'', false},
+	}
+
+	for _, tc := range cases {
+		name := fmt.Sprintf("%c", tc.in)
+		t.Run(name, func(t *testing.T) {
+			get := SaneValueStart(tc.in)
+			assert.Equal(t, tc.exp, get)
+		})
+	}
+}

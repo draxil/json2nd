@@ -183,6 +183,10 @@ func (j *JSON) WriteCurrentTo(w io.Writer, includeDeliminators bool) (int, error
 		return 0, errNoObject()
 	}
 
+	if start >= '0' && start <= '9' {
+		return j.writeCurrentNumber(w)
+	}
+
 	scanner := NewScanState(start)
 
 	alreadyWritten := 0
@@ -237,6 +241,42 @@ func (j *JSON) WriteCurrentTo(w io.Writer, includeDeliminators bool) (int, error
 	return alreadyWritten, nil
 }
 
+func (j JSON) writeCurrentNumber(w io.Writer) (int, error) {
+	end := false
+	written := 0
+	start := 0
+
+	for !end {
+		start = j.idx
+		for ; j.idx < j.bytes; j.idx++ {
+			c := j.buf[j.idx]
+			if !(c >= '0' && c <= '9') && c != '.' {
+				end = true
+				break
+			}
+		}
+		n, err := w.Write(j.buf[start:j.idx])
+		if err != nil {
+			return 0, err
+		}
+
+		written += n
+		if !end && j.idx == j.bytes {
+			more, err := j.data()
+			if err != nil {
+				return 0, err
+			}
+			if !more {
+				end = true
+				break
+			}
+		}
+
+	}
+
+	return written, nil
+}
+
 func errNoObject() error {
 	// TODO: internal error system?
 	return ErrInternal{fmt.Errorf("no current object")}
@@ -257,6 +297,12 @@ func isSpace(c byte) bool {
 
 func SaneValueStart(c byte) bool {
 	closer := closerFor(c)
-	return closer != 0
+	if closer != 0 {
+		return true
+	}
+	return (c == 'n' || // for null
+		c == 't' || // for true
+		(c >= '0' && c <= '9') ||
+		c == 'f') // for false
 
 }

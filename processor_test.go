@@ -141,6 +141,24 @@ func TestProcessor(t *testing.T) {
 			path:   "something",
 			expErr: errPathLeadToBadValue('b'),
 		},
+		{
+			name: "path leads to a number",
+			in:   sreader(`{"something":12}`),
+			path: "something",
+			exp:  "12\n",
+		},
+		{
+			name: "path leads to a space padded number",
+			in:   sreader(`{"something":  12  }`),
+			path: "something",
+			exp:  "12\n",
+		},
+		{
+			name: "path leads to a space padded float",
+			in:   sreader(`{"something":  12.12  }`),
+			path: "something",
+			exp:  "12.12\n",
+		},
 	}
 
 	for _, tc := range cases {

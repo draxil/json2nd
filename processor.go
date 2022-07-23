@@ -166,6 +166,14 @@ func guessJSONType(clue byte) string {
 		return "object"
 	case '"':
 		return "string"
+	case '[':
+		return "array"
+	case 't':
+		return "boolean"
+	case 'f':
+		return "boolean"
+	case 'n':
+		return "null"
 	}
 
 	if clue >= '0' && clue <= '9' {
