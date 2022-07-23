@@ -219,6 +219,81 @@ func TestCurrentWriteTo(t *testing.T) {
 	}
 }
 
+func TestScanForKey(t *testing.T) {
+
+	cases := []struct {
+		name     string
+		reader   io.Reader
+		key      string
+		expErr   error
+		expFound bool
+	}{
+		{
+			name:     "next error",
+			reader:   sread(""),
+			key:      "x",
+			expErr:   io.EOF,
+			expFound: false,
+		},
+		{
+			name:     "not object error",
+			reader:   sread(" ["),
+			key:      "x",
+			expErr:   ErrScanNotObject{'['},
+			expFound: false,
+		},
+		{
+			name:     "key not found",
+			reader:   sread("{}"),
+			key:      "x",
+			expFound: false,
+		},
+		{
+			name:     "ignore nested object with wrong key",
+			reader:   sread(`{"xyz":{"x":12}}`),
+			key:      "x",
+			expFound: false,
+		},
+		{
+			name:     "don't find value as key",
+			reader:   sread(`{"v":"x"}`),
+			key:      "x",
+			expFound: false,
+		},
+		{
+			name:     "do find key (simple)",
+			reader:   sread(`{"x":"v"}`),
+			key:      "x",
+			expErr:   nil,
+			expFound: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			j := New(tc.reader)
+			found, err := j.ScanForKey(tc.key)
+			assert.Equal(t, tc.expFound, found, "found")
+			assert.Equal(t, tc.expErr, err, "err")
+		})
+	}
+}
+
+func TestScanForKeyValueSimple(t *testing.T) {
+	r := sread(`{"x":"v"}`)
+	j := New(r)
+
+	found, err := j.ScanForKeyValue("x")
+	assert.NoError(t, err)
+	assert.True(t, found, "found")
+
+	b := strings.Builder{}
+	_, err = j.WriteCurrentTo(&b, true)
+
+	assert.NoError(t, err)
+	assert.Equal(t, `"v"`, b.String(), "value")
+}
+
 // WRITETO:
 // NEST ARRAYS
 // STRINGS WITH ARRAY CHARS

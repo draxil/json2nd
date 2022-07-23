@@ -81,12 +81,12 @@ func TestProcessor(t *testing.T) {
 		// 	path:   "something.else",
 		// 	expErr: errBadPath("else"),
 		// },
-		// {
-		// 	name: "good simple path to string array",
-		// 	in:   sreader(`{"something":{"else":["one", "two"]}}`),
-		// 	path: "something.else",
-		// 	exp:  `"one"` + "\n" + `"two"` + "\n",
-		// },
+		{
+			name: "good simple path to string array",
+			in:   sreader(`{"something":{"else":["one", "two"]}}`),
+			path: "something.else",
+			exp:  `"one"` + "\n" + `"two"` + "\n",
+		},
 		// {
 		// 	name:   "broken path - 1",
 		// 	in:     sreader(`{"something":{}}`),

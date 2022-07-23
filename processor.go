@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/draxil/json2nd/internal/json"
 )
@@ -29,12 +30,10 @@ func (p processor) run() error {
 		return errNilInput()
 	}
 
-	if p.path != "" {
-		panic("not import on internal json branch")
-		//return p.handlePath()
-	}
-
 	js := json.New(p.in)
+	if p.path != "" {
+		return p.handlePath(js)
+	}
 
 	c, err := js.Next()
 	if err != nil && err != io.EOF {
@@ -48,10 +47,77 @@ func (p processor) run() error {
 
 	// TODO BACK IN FUNC
 
+	return p.handleArray(js)
+	// var bigArray []json.RawMessage
+	// err = dec.Decode(&bigArray)
+	// if err != nil {
+	// 	return arrayJSONErr(err)
+	// }
+
+	// return p.handleArray(bigArray)
+}
+
+func (p processor) handlePath(scan *json.JSON) error {
+	nodes := strings.Split(p.path, ".")
+	return p.handlePathNodes(nodes, scan)
+}
+
+func (p processor) handlePathNodes(nodes []string, scan *json.JSON) error {
+
+	// shouldn't be possible? But never say never.
+	if len(nodes) == 0 {
+		return fmt.Errorf("novel error 1: please report")
+	}
+
+	next, nodes := nodes[0], nodes[1:]
+	if next == "" {
+		return errBlankPath()
+	}
+
+	found, err := scan.ScanForKeyValue(next)
+	if err != nil {
+		// TODO:
+		return err
+	}
+	if !found {
+		return errBadPath(next)
+	}
+
+	if len(nodes) == 0 {
+
+		clue, err := scan.Next()
+		if err != nil {
+			// TODO:
+			return err
+		}
+
+		if clue == '[' {
+			return p.handleArray(scan)
+		}
+
+		panic("NDY")
+		//return p.handleNonArray(scan, clue)
+	}
+	return p.handlePathNodes(nodes, scan)
+}
+
+// 	var nextObj map[string]json.RawMessage
+// 	err := json.Unmarshal(target, &nextObj)
+// 	if err != nil {
+// 		// TODO: hard to cover as would be caught earlier,
+// 		// but maybe when we change JSON method?
+// 		return fmt.Errorf("could not decode path node %s: %w", next, err)
+// 	}
+
+// 	return p.handlePathNodes(nodes, nextObj)
+// }
+func (p processor) handleArray(js *json.JSON) error {
+
+	// TODO more in json
+
 	// shift the cursor from the start of the array:
 	js.MoveOff()
 	for {
-		fmt.Println("LP")
 		nc, err := js.Next()
 		if err != nil {
 			// TODO WHEN IN FUNC BETTER ERRS
@@ -64,7 +130,6 @@ func (p processor) run() error {
 		if nc == ']' {
 			break
 		}
-		fmt.Printf("New clue: %c\n", nc)
 
 		n, err := js.WriteCurrentTo(p.out, true)
 		if err != nil {
@@ -81,92 +146,8 @@ func (p processor) run() error {
 		}
 		js.MoveOff()
 	}
-
 	return nil
-	// var bigArray []json.RawMessage
-	// err = dec.Decode(&bigArray)
-	// if err != nil {
-	// 	return arrayJSONErr(err)
-	// }
-
-	// return p.handleArray(bigArray)
 }
-
-// func (p processor) handlePath() error {
-// 	nodes := strings.Split(p.path, ".")
-
-// 	dec := json.NewDecoder(p.in)
-
-// 	var obj map[string]json.RawMessage
-// 	err := dec.Decode(&obj)
-// 	if err != nil {
-// 		return rawJSONErr(err)
-// 	}
-
-// 	return p.handlePathNodes(nodes, obj)
-// }
-
-// func (p processor) handlePathNodes(nodes []string, obj map[string]json.RawMessage) error {
-
-// 	// shouldn't be possible? But never say never.
-// 	if len(nodes) == 0 {
-// 		return fmt.Errorf("novel error 1: please report")
-// 	}
-
-// 	next, nodes := nodes[0], nodes[1:]
-// 	if next == "" {
-// 		return errBlankPath()
-// 	}
-
-// 	target, exists := obj[next]
-// 	if !exists {
-// 		return errBadPath(next)
-// 	}
-
-// 	if len(nodes) == 0 {
-
-// 		clue, isArray := rawIsArray(target)
-
-// 		if isArray {
-// 			var a []json.RawMessage
-// 			err := json.Unmarshal(target, &a)
-// 			if err != nil {
-// 				// TODO: hard to cover as would be caught earlier,
-// 				// but maybe when we change JSON method?
-// 				return arrayJSONErr(err)
-// 			}
-// 			return p.handleArray(a)
-// 		}
-
-// 		return p.handleNonArray(bytes.NewReader(target), clue)
-// 	}
-
-// 	var nextObj map[string]json.RawMessage
-// 	err := json.Unmarshal(target, &nextObj)
-// 	if err != nil {
-// 		// TODO: hard to cover as would be caught earlier,
-// 		// but maybe when we change JSON method?
-// 		return fmt.Errorf("could not decode path node %s: %w", next, err)
-// 	}
-
-// 	return p.handlePathNodes(nodes, nextObj)
-// }
-
-// func (p processor) handleArray(a []json.RawMessage) error {
-
-// 	for _, v := range a {
-// 		_, err := p.out.Write(v)
-// 		if err != nil {
-// 			return writeErr(err)
-// 		}
-// 		_, err = p.out.Write([]byte("\n"))
-// 		if err != nil {
-// 			return writeErr(err)
-// 		}
-// 	}
-
-// 	return nil
-// }
 
 func (p processor) handleNonArray(r io.Reader, clue byte) error {
 
@@ -248,20 +229,6 @@ func writeErr(e error) error {
 func peekErr(e error) error {
 	return fmt.Errorf("error looking for JSON: %w", e)
 }
-
-// TODO: merge this with the other?
-// func rawIsArray(m json.RawMessage) (clue byte, is bool) {
-// 	for _, v := range m {
-// 		if isSpace(v) {
-// 			continue
-// 		}
-// 		if v == '[' {
-// 			return v, true
-// 		}
-// 		return v, false
-// 	}
-// 	return 0, false
-// }
 
 // stolen from encoding/json
 func isSpace(c byte) bool {

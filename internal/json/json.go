@@ -1,8 +1,11 @@
 package json
 
+// TODO: MASTER OFFSET FOR ERRORS?
+
 import (
 	"fmt"
 	"io"
+	"strings"
 )
 
 type JSON struct {
@@ -76,6 +79,132 @@ func closerFor(b byte) byte {
 		return '"'
 	}
 	return 0
+}
+func (j *JSON) ScanForKeyValue(k string) (bool, error) {
+	found, err := j.ScanForKey(k)
+	if err != nil {
+		return false, err
+	}
+	if !found {
+		return false, nil
+	}
+
+	j.MoveOff()
+	c, err := j.Next()
+	if err != nil {
+		return false, err
+	}
+	if c != ':' {
+		return false, fmt.Errorf("expected ':' found %c", c)
+	}
+
+	j.MoveOff()
+	_, err = j.Next()
+	if err != nil {
+		return false, err
+	}
+	// should be on a value now
+
+	return true, nil
+}
+func (j *JSON) ScanForKey(k string) (bool, error) {
+	start, err := j.Next()
+	if err != nil {
+		return false, err
+	}
+
+	if start != '{' {
+		return false, ErrScanNotObject{start}
+	}
+
+	// kick cursor into the object
+	j.MoveOff()
+
+	closer := closerFor(start)
+	closerBalance := 0
+	if closer == 0 {
+		return false, ErrInternal{fmt.Errorf("no closer for: %c", start)}
+	}
+	onkey := false
+	inStr := false
+	last := byte(0)
+	keybuf := strings.Builder{}
+	// TODO: SHARED
+	// TODO: NOT BIG AN GUGLY
+	for {
+		for ; j.idx < len(j.buf); j.idx++ {
+			b := j.buf[j.idx]
+
+			if start != closer {
+				if inStr && b != '"' {
+					if onkey {
+						keybuf.WriteByte(b)
+					}
+					last = b
+					continue
+				}
+				if b == '"' {
+					if !inStr {
+						inStr = true
+						last = b
+
+						if onkey {
+							onkey = false
+						}
+						if !onkey {
+							onkey = true
+						}
+
+						continue
+					}
+					if inStr && last != '\\' {
+						inStr = false
+
+						if onkey {
+							key := keybuf.String()
+							if key == k {
+								return true, nil
+							}
+							keybuf.Reset()
+						}
+
+						last = b
+						continue
+					}
+				}
+			}
+
+			if b == closer {
+				if closerBalance > 0 {
+					closerBalance--
+					continue
+				}
+				return false, nil
+			}
+			if b == start {
+				closerBalance++
+			}
+		}
+
+		more, err := j.data()
+		if err != nil {
+			// TODO: context?
+			return false, err
+		}
+		if !more {
+			break
+		}
+	}
+
+	return false, nil
+}
+
+type ErrScanNotObject struct {
+	on byte
+}
+
+func (ErrScanNotObject) Error() string {
+	return "can't scan for key, not on an object"
 }
 
 func (j *JSON) WriteCurrentTo(w io.Writer, includeDeliminators bool) (int, error) {
