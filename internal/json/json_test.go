@@ -66,7 +66,7 @@ func TestNext(t *testing.T) {
 
 func TestWriteToSimple(t *testing.T) {
 	out := strings.Builder{}
-	in := sread("    \n [1,2,3,4] ")
+	in := sread("    \n [1,2,3,4]   ")
 	j := New(in)
 
 	get, err := j.Next()

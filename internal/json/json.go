@@ -5,7 +5,6 @@ package json
 import (
 	"fmt"
 	"io"
-	"strings"
 )
 
 type JSON struct {
@@ -120,79 +119,35 @@ func (j *JSON) ScanForKey(k string) (bool, error) {
 	// kick cursor into the object
 	j.MoveOff()
 
-	closer := closerFor(start)
-	closerBalance := 0
-	if closer == 0 {
-		return false, ErrInternal{fmt.Errorf("no closer for: %c", start)}
-	}
-	onkey := false
-	inStr := false
-	last := byte(0)
-	keybuf := strings.Builder{}
-	// TODO: SHARED
-	// TODO: NOT BIG AN GUGLY
+	scanner := NewScanState(start)
+	scanner.seekFor(k)
+
 	for {
-		for ; j.idx < len(j.buf); j.idx++ {
-			b := j.buf[j.idx]
+		var err error
 
-			if start != closer {
-				if inStr && b != '"' {
-					if onkey {
-						keybuf.WriteByte(b)
-					}
-					last = b
-					continue
-				}
-				if b == '"' {
-					if !inStr {
-						inStr = true
-						last = b
-
-						if onkey {
-							onkey = false
-						}
-						if !onkey {
-							onkey = true
-						}
-
-						continue
-					}
-					if inStr && last != '\\' {
-						inStr = false
-
-						if onkey {
-							key := keybuf.String()
-							if key == k {
-								return true, nil
-							}
-							keybuf.Reset()
-						}
-
-						last = b
-						continue
-					}
-				}
-			}
-
-			if b == closer {
-				if closerBalance > 0 {
-					closerBalance--
-					continue
-				}
-				return false, nil
-			}
-			if b == start {
-				closerBalance++
-			}
-		}
-
-		more, err := j.data()
+		j.idx, err = scanner.scan(j.buf, j.idx, j.bytes)
 		if err != nil {
 			// TODO: context?
 			return false, err
 		}
-		if !more {
-			break
+
+		if scanner.seekFound {
+			return true, nil
+		}
+
+		if !scanner.open {
+			return false, nil
+		}
+
+		if j.idx == j.bytes {
+			more, err := j.data()
+			if err != nil {
+				// TODO: context?
+				return false, err
+			}
+			if !more {
+				break
+			}
 		}
 	}
 
@@ -211,118 +166,64 @@ func (j *JSON) WriteCurrentTo(w io.Writer, includeDeliminators bool) (int, error
 	// TODO: do we care about numbers, bools, null being json values? If not do we really care about strings?
 
 	// because Next() leaves us resting on the start
-	startIdx := j.idx
 	start := j.buf[j.idx]
-	j.idx++
 
 	if start == 0 {
 		return 0, errNoObject()
 	}
 
-	if !includeDeliminators {
-		startIdx++
-	}
+	scanner := NewScanState(start)
 
-	closer := closerFor(start)
-	if closer == 0 {
-		return 0, ErrInternal{fmt.Errorf("no closer for: %c", start)}
-	}
-
-	end := -1
-	closerBalance := 0
 	alreadyWritten := 0
-	inStr := false
-	last := byte(0)
+	wn := 0
+	end := 0
+	var err error
 
-	// TODO: LESS BIG AND DUMB
+	if includeDeliminators {
+		_, err := w.Write([]byte{start})
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	j.MoveOff()
+
 	for {
-		for ; j.idx < len(j.buf); j.idx++ {
-			b := j.buf[j.idx]
-
-			// TODO: FOR THE SANE VERSION NOT SO NESTED
-			if start != closer {
-				if inStr && b != '"' {
-					last = b
-					continue
-				}
-				if b == '"' {
-					if !inStr {
-						inStr = true
-						last = b
-						continue
-					}
-					if inStr && last != '\\' {
-						inStr = false
-						last = b
-						continue
-					}
-				}
-
-				if b == closer {
-					if closerBalance > 0 {
-						closerBalance--
-						continue
-					}
-					last = b
-					end = j.idx
-					break
-				}
-				if b == start {
-					closerBalance++
-				}
-			}
-
-			if start == closer {
-				if last == '\\' {
-					last = b
-					continue
-				}
-				if b == closer {
-					last = b
-					end = j.idx
-					break
-				}
-			}
-
-			last = b
-		}
-
-		if end != -1 {
-			break
-		}
-
-		n, err := w.Write(j.buf[startIdx:j.bytes])
+		end, err = scanner.scan(j.buf, j.idx, j.bytes)
 		if err != nil {
 			return 0, err
 		}
-		alreadyWritten += n
-		startIdx = 0
 
-		more, err := j.data()
+		// in this case we're on the delim:
+		if includeDeliminators && !scanner.open {
+			end++
+			alreadyWritten++
+		}
+
+		wn, err = w.Write(j.buf[j.idx:end])
 		if err != nil {
-			// TODO: context?
 			return 0, err
 		}
-		if !more {
+
+		j.idx = end
+		alreadyWritten += wn
+
+		if scanner.open {
+			more, err := j.data()
+			if err != nil {
+				// TODO: context?
+				return 0, err
+			}
+			if !more {
+				break
+			}
+		} else {
+
 			break
 		}
 	}
 
-	if end == -1 {
-		// TODO: clarity?
-		return 0, io.EOF
-	}
-
-	if !includeDeliminators {
-		end--
-	}
-
-	os := j.buf[startIdx : end+1]
-	n, err := w.Write(os)
-	if err != nil {
-		return alreadyWritten, err
-	}
-	return n + alreadyWritten, nil
+	return alreadyWritten, nil
 }
 
 func errNoObject() error {
