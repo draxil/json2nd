@@ -242,6 +242,20 @@ func TestCurrentWriteTo(t *testing.T) {
 			exp:     "null",
 			expClue: 'n',
 		},
+		{
+			name:    "target in notation: 1e-005",
+			in:      sread("1e-005,"),
+			delims:  false,
+			exp:     "1e-005",
+			expClue: '1',
+		},
+		{
+			name:    "target in notation: 1.0E+2",
+			in:      sread("1.0E+2,"),
+			delims:  false,
+			exp:     "1.0E+2",
+			expClue: '1',
+		},
 	}
 
 	for _, tc := range cases {

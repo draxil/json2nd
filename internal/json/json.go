@@ -246,6 +246,8 @@ func (j *JSON) WriteCurrentTo(w io.Writer, includeDeliminators bool) (int, error
 	return alreadyWritten, nil
 }
 
+// NOTE: Would allow some bad values such 1.....4 or 1e+-2134 but remember
+// JSON validation isn't really our jam.
 func (j JSON) writeCurrentNumber(w io.Writer) (int, error) {
 	end := false
 	written := 0
@@ -255,7 +257,12 @@ func (j JSON) writeCurrentNumber(w io.Writer) (int, error) {
 		start = j.idx
 		for ; j.idx < j.bytes; j.idx++ {
 			c := j.buf[j.idx]
-			if !(c >= '0' && c <= '9') && c != '.' {
+			if !((c >= '0' && c <= '9') ||
+				c == '.' ||
+				c == 'e' ||
+				c == 'E' ||
+				c == '-' ||
+				c == '+') {
 				end = true
 				break
 			}
