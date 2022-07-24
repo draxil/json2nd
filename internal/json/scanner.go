@@ -62,8 +62,10 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 			}
 		}
 
+		// start or end of a string:
 		if b == '"' {
 			if s.inStr && s.last != '\\' {
+				// end of string.
 				s.inStr = false
 				if s.in == '{' && s.key {
 					s.key = false
@@ -86,16 +88,19 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 					return idx, nil
 				}
 			} else if !s.inStr {
+				// start of string
 				s.inStr = true
 				if s.in == '{' && !s.key && s.lastNotWs != ':' {
 					s.key = true
 				}
 			}
 		} else if s.seeking && s.key {
+			// store the part of the key we've found
 			// TODO: maybe don't care if not matching so far or something?
 			s.keybuf.WriteByte(b)
 		}
 
+		// possibly the end of whatever we are scanning
 		if !s.inStr {
 			if b == s.closer {
 				if s.closerBalance == 0 {
