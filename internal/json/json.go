@@ -175,7 +175,7 @@ func (ErrScanNotObject) Error() string {
 }
 
 func (j *JSON) WriteCurrentTo(w io.Writer, includeDeliminators bool) (int, error) {
-	// TODO: do we care about numbers, bools, null being json values? If not do we really care about strings?
+	// TODO: note sure all delims schenarios are covered with no delim types
 
 	// because Next() leaves us resting on the start
 	start := j.buf[j.idx]
@@ -247,13 +247,14 @@ func (j *JSON) WriteCurrentTo(w io.Writer, includeDeliminators bool) (int, error
 
 // NOTE: Would allow some bad values such 1.....4 or 1e+-2134 but remember
 // JSON validation isn't really our jam.
-func (j JSON) writeCurrentNumber(w io.Writer) (int, error) {
+func (j *JSON) writeCurrentNumber(w io.Writer) (int, error) {
 	end := false
 	written := 0
 	start := 0
 
 	for !end {
 		start = j.idx
+
 		for ; j.idx < j.bytes; j.idx++ {
 			c := j.buf[j.idx]
 			if !((c >= '0' && c <= '9') ||
@@ -266,6 +267,7 @@ func (j JSON) writeCurrentNumber(w io.Writer) (int, error) {
 				break
 			}
 		}
+
 		n, err := w.Write(j.buf[start:j.idx])
 		if err != nil {
 			return 0, err
@@ -288,7 +290,7 @@ func (j JSON) writeCurrentNumber(w io.Writer) (int, error) {
 	return written, nil
 }
 
-func (j JSON) writeKeywordValue(w io.Writer) (int, error) {
+func (j *JSON) writeKeywordValue(w io.Writer) (int, error) {
 	end := false
 	stored := 0
 	written := 0

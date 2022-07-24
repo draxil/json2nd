@@ -15,7 +15,6 @@ type processor struct {
 	path        string
 }
 
-// TODO: dive down mode
 // TODO: detect where not an object more tidily in path mode
 // TODO: prove buf
 // TODO: no error on bad path mode?
@@ -100,12 +99,13 @@ func (p processor) handleArray(js *json.JSON) error {
 	js.MoveOff()
 
 	for {
-		_, err := js.Next()
+		c, err := js.Next()
 		if err != nil {
 			return err
 		}
 
 		n, err := js.WriteCurrentTo(p.out, true)
+
 		if err != nil {
 			return arrayJSONErr(err)
 		}
@@ -119,7 +119,7 @@ func (p processor) handleArray(js *json.JSON) error {
 			break
 		}
 
-		c, err := js.Next()
+		c, err = js.Next()
 		if err != nil {
 			return err
 		}
