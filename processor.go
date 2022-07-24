@@ -210,6 +210,13 @@ func errBlankPath() error {
 	return fmt.Errorf("bad blank path node, did you have a double dot?")
 }
 func errPathLeadToBadValue(start byte) error {
+	t := guessJSONType(start)
+
+	// TODO: reference the path
+	if t != "" {
+		return fmt.Errorf("path lead to %s not an object", t)
+	}
+
 	return fmt.Errorf("path lead to bad value start: %c", start)
 }
 

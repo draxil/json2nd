@@ -254,7 +254,6 @@ func TestGuessJsonType(t *testing.T) {
 		{'-', "number"},
 		{'x', ""},
 		{'\'', ""},
-		// we won't look for arrays:
 		{'[', "array"},
 	}
 
@@ -263,6 +262,34 @@ func TestGuessJsonType(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			get := guessJSONType(tc.in)
 			assert.Equal(t, tc.exp, get)
+		})
+	}
+}
+
+func TestErrPathLeadToBadValueMessage(t *testing.T) {
+
+	cases := []struct {
+		name     string
+		clue     byte
+		contains string
+	}{
+		{
+			name:     "a number tells us it's a number type",
+			clue:     '-',
+			contains: "number",
+		},
+		{
+			name:     "non-start character gives us a reasonable clue",
+			clue:     'Z',
+			contains: `Z`,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := errPathLeadToBadValue(tc.clue)
+			str := err.Error()
+			assert.Contains(t, str, tc.contains)
 		})
 	}
 }
