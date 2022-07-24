@@ -256,6 +256,27 @@ func TestCurrentWriteTo(t *testing.T) {
 			exp:     "1.0E+2",
 			expClue: '1',
 		},
+		{
+			name:    "target is a negative number",
+			in:      sread("-12"),
+			delims:  false,
+			exp:     "-12",
+			expClue: '-',
+		},
+		{
+			name:    "target is a negative float",
+			in:      sread("-12.01"),
+			delims:  false,
+			exp:     "-12.01",
+			expClue: '-',
+		},
+		{
+			name:    "show effect of delims on an awkward number",
+			in:      sread(" -12.01-210, "),
+			delims:  true,
+			exp:     "-12.01-210",
+			expClue: '-',
+		},
 	}
 
 	for _, tc := range cases {
@@ -379,6 +400,8 @@ func TestSaneValueStart(t *testing.T) {
 		{'9', true},
 		{'@', false},
 		{'\'', false},
+		// for negative numbers:
+		{'-', true},
 	}
 
 	for _, tc := range cases {

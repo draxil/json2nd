@@ -184,7 +184,7 @@ func (j *JSON) WriteCurrentTo(w io.Writer, includeDeliminators bool) (int, error
 		return 0, errNoObject()
 	}
 
-	if start >= '0' && start <= '9' {
+	if (start >= '0' && start <= '9') || start == '-' {
 		return j.writeCurrentNumber(w)
 	}
 	if start == 't' || start == 'f' || start == 'n' {
@@ -366,6 +366,7 @@ func SaneValueStart(c byte) bool {
 	return (c == 'n' || // for null
 		c == 't' || // for true
 		(c >= '1' && c <= '9') ||
+		c == '-' ||
 		c == 'f') // for false
 
 }

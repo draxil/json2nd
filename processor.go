@@ -176,7 +176,7 @@ func guessJSONType(clue byte) string {
 		return "null"
 	}
 
-	if clue >= '0' && clue <= '9' {
+	if (clue >= '0' && clue <= '9') || clue == '-' {
 		return "number"
 	}
 

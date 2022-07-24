@@ -160,6 +160,12 @@ func TestProcessor(t *testing.T) {
 			exp:  "12.12\n",
 		},
 		{
+			name: "path leads to a space padded negative float",
+			in:   sreader(`{"something":  -12.12  }`),
+			path: "something",
+			exp:  "-12.12\n",
+		},
+		{
 			name: "path leads to a bool (true)",
 			in:   sreader(`{"something":  true  }`),
 			path: "something",
@@ -205,6 +211,13 @@ func TestProcessor(t *testing.T) {
 			path:   "something.else",
 			expErr: json.ErrScanNotObject{On: 't'},
 		},
+
+		{
+			name:   "path goes through a negative number",
+			in:     sreader(`{"something":  -129 }`),
+			path:   "something.else",
+			expErr: json.ErrScanNotObject{On: '-'},
+		},
 	}
 
 	for _, tc := range cases {
@@ -238,6 +251,7 @@ func TestGuessJsonType(t *testing.T) {
 		{'1', "number"},
 		{'0', "number"},
 		{'9', "number"},
+		{'-', "number"},
 		{'x', ""},
 		{'\'', ""},
 		// we won't look for arrays:
