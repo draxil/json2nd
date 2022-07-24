@@ -25,4 +25,4 @@ jobs:
         goarch: ${{ matrix.goarch }}
         project_path: "."
         binary_name: "json2nd"
-        extra_files: LICENSE README.org doc/
+        extra_files: LICENSE Readme.org doc/
