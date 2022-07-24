@@ -259,6 +259,26 @@ func TestProcessor(t *testing.T) {
 			in:   sreader("{\n\"five\"\n:\n5}\n"),
 			exp:  "{\"five\":5}\n",
 		},
+		{
+			name: "just a number",
+			in:   sreader("       129.1"),
+			exp:  "129.1\n",
+		},
+		{
+			name: "just a bool",
+			in:   sreader("       true "),
+			exp:  "true\n",
+		},
+		{
+			name: "just a null",
+			in:   sreader("       null "),
+			exp:  "null\n",
+		},
+		{
+			name: "just a string",
+			in:   sreader(`    "zyx"`),
+			exp:  `"zyx"` + "\n",
+		},
 	}
 
 	for _, tc := range cases {
