@@ -193,17 +193,6 @@ func errNilInput() error {
 	return fmt.Errorf("nil input")
 }
 
-func errNotArray(clue byte) error {
-	t := guessJSONType(clue)
-
-	if t != "" {
-		return errNotArrayWas(t)
-	}
-
-	// FUTURE: indicate what it was?
-	return fmt.Errorf("expected structure to be an array")
-}
-
 func errNotArrayWas(t string) error {
 	return fmt.Errorf("expected structure to be an array but found: %s", t)
 }
@@ -246,31 +235,10 @@ func errNoJSON() error {
 	return fmt.Errorf("no JSON data found")
 }
 
-func rawJSONErr(e error) error {
-	return fmt.Errorf("raw JSON decode error: %w", e)
-}
-
 func arrayJSONErr(e error) error {
 	return fmt.Errorf("array JSON decode error: %w", e)
 }
 
-func readErr(e error) error {
-	return fmt.Errorf("read error: %w", e)
-}
-
-func seekErr(e error) error {
-	return fmt.Errorf("seek error: %w", e)
-}
-
-func writeErr(e error) error {
-	return fmt.Errorf("write error: %w", e)
-}
-
 func peekErr(e error) error {
 	return fmt.Errorf("error looking for JSON: %w", e)
-}
-
-// stolen from encoding/json
-func isSpace(c byte) bool {
-	return c <= ' ' && (c == ' ' || c == '\t' || c == '\r' || c == '\n')
 }

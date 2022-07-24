@@ -30,7 +30,3 @@ func fileOpenErr(file string, e error) error {
 func fileProcessErr(file string, e error) error {
 	return fmt.Errorf("could not process %s: %w", file, e)
 }
-
-func fmWriteErr(e error) error {
-	return fmt.Errorf("could not write to output: %w", e)
-}
