@@ -366,7 +366,8 @@ func TestSaneValueStart(t *testing.T) {
 		{'n', true},
 		{'x', false},
 		{'f', true},
-		{'0', true},
+		// JSON numbers can't actually start with a 0:
+		{'0', false},
 		{'1', true},
 		{'2', true},
 		{'3', true},

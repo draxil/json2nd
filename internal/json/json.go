@@ -1,9 +1,8 @@
 package json
 
 // TODO: MASTER OFFSET FOR ERRORS?
-// TODO: unicode considerations
-// TODO: hex numbers?
-// TODO: other odd type stuff, single quoted gubbins apparently?
+// TODO: unicode considerations?
+// TODO: BETTER ERROR HANDLING
 
 import (
 	"fmt"
@@ -366,7 +365,7 @@ func SaneValueStart(c byte) bool {
 	}
 	return (c == 'n' || // for null
 		c == 't' || // for true
-		(c >= '0' && c <= '9') ||
+		(c >= '1' && c <= '9') ||
 		c == 'f') // for false
 
 }
