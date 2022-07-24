@@ -8,7 +8,7 @@ Filter to convert a JSON document with a top-level array to NDJSON (a.k.a NLJSON
   cat large_array.json | json2nd > object_per_line.json
 #+end_src
 
-Like a lot of filter programs you can switch from using stdin to a list of filenames, so now it acts a bit like a JSON cat that converts arrays:
+Like a lot of filter programs you can switch from using STDIN to a list of filenames, so now it acts a bit like a JSON cat that converts arrays:
 
 #+begin_src sh
   json2nd large_array1.json large_array2.json > object_per_line.json
@@ -24,7 +24,7 @@ If the array you want to "unpack" is just below the surface, say:
   }
 #+end_src
 
-Yoy cab use the -path flag to extract it:
+You can use the -path flag to extract it:
 
 #+begin_src
   json2nd -path stuff.things file.json
@@ -44,7 +44,7 @@ Assuming your ~$GOBIN~ directory is somewhere in your ~$PATH~ it's as simple as:
 
 * Plans / what about XYZ?
 
-** Why are your error mesages so bad?
+** Why are your error messages so bad?
 
 Since we moved off a proper parser the first priorities were: speed, memory use and working.
 
@@ -52,11 +52,11 @@ Being helpful when it goes wrong is pretty much the next goal.
 
 ** Windows style line endings ("\r\n")?
 
-Maybe. Honesly would be getting beyond the simplicity of this thing, but I can see how it could be useful to some people. Bug me?
+Maybe. Honestly would be getting beyond the simplicity of this thing, but I can see how it could be useful to some people. Bug me?
 
 ** What about jq?
 
-~jq~ is great! And a lot of the time I'm running this so I can slice a file up so I can run ~jq~ more quickly! This is simpler to use as it's a single-use tool, and should be faster than ~jq~. Also as a lot of the use case for this is people sending me inadvisably large files, we don't load the whole thing into memory. ~jq~ unavoidably does and it kills my machine on some of my 4G+ (I kid you not) examples.
+~jq~ is great! And a lot of the time I'm running this so I can slice a file up so I can run ~jq~ more quickly! This is simpler to use as it's a single-use tool, and should be faster than ~jq~. Also as a lot of the use case for this is people sending me in advisably large files, we don't load the whole thing into memory. ~jq~ unavoidably does and it kills my machine on some of my 4G+ (I kid you not) examples.
 
 Sometimes you want UNIX philosophy sometimes you need an atomic chainsaw. Why not have both.
 
