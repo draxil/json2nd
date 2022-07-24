@@ -42,6 +42,10 @@ Assuming your ~$GOBIN~ directory is somewhere in your ~$PATH~ it's as simple as:
   go install github.com/draxil/json2nd@latest
 #+end_src
 
+** Github release
+
+There are builds of release points on github. Grab the relevent build from [[https://github.com/draxil/json2nd/releases][the github releases]] page, right now these just contain a binary and docs. 
+
 * Plans / what about XYZ?
 
 ** Why are your error messages so bad?
