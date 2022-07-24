@@ -2,7 +2,7 @@
 
 * If what we find isn't an array:
 
-A JSON value other than an array will just be extracted un-modfied, except we'll stick a newline on the end. 
+A JSON value other than an array will just be extracted un-modfied, except we'll stick a newline on the end, and remove any newlines from within the record.
 
 * Check we're unpacking an array
 
