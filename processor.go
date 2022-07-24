@@ -98,10 +98,15 @@ func (p processor) handleArray(js *json.JSON) error {
 	// shift the cursor from the start of the array:
 	js.MoveOff()
 
+	arrayIDX := 0
 	for {
 		c, err := js.Next()
 		if err != nil {
-			return err
+			return arrayNextError(arrayIDX, err)
+		}
+
+		if !json.SaneValueStart(c) {
+			return errBadArrayValueStart(c, arrayIDX)
 		}
 
 		n, err := js.WriteCurrentTo(p.out, true)
@@ -121,7 +126,7 @@ func (p processor) handleArray(js *json.JSON) error {
 
 		c, err = js.Next()
 		if err != nil {
-			return err
+			return arrayNextError(arrayIDX, err)
 		}
 
 		if c == ']' {
@@ -133,6 +138,7 @@ func (p processor) handleArray(js *json.JSON) error {
 			return fmt.Errorf("unexpected character: %c", c)
 		}
 
+		arrayIDX++
 	}
 	return nil
 }
@@ -218,6 +224,22 @@ func errPathLeadToBadValue(start byte) error {
 	}
 
 	return fmt.Errorf("path lead to bad value start: %c", start)
+}
+
+func errBadArrayValueStart(start byte, index int) error {
+	return fmt.Errorf("at array index %d found something which doesn't look like a JSON value, starts with: %c", index, start)
+}
+
+func arrayNextError(index int, e error) error {
+	if e == io.EOF {
+		return errArrayEOF(index)
+	}
+	// TODO: process this?
+	return e
+}
+
+func errArrayEOF(index int) error {
+	return fmt.Errorf("at array index %d we ran out of data", index)
 }
 
 func errNoJSON() error {

@@ -74,6 +74,11 @@ func TestProcessor(t *testing.T) {
 			exp:  "1\n2\n3\n4\n5.432\n1.e-23\n",
 		},
 		{
+			name: "bool and null array",
+			in:   sreader(`    [   false, true, false, null  ]`),
+			exp:  "false\ntrue\nfalse\nnull\n",
+		},
+		{
 			name:   "bad path",
 			in:     sreader(`{}`),
 			path:   "something",
@@ -222,6 +227,27 @@ func TestProcessor(t *testing.T) {
 			in:     sreader(`{"something":  -129 }`),
 			path:   "something.else",
 			expErr: json.ErrScanNotObject{On: '-'},
+		},
+
+		{
+			name:   "array that doesn't end - 1",
+			in:     sreader("[1, 2, 3"),
+			exp:    "1\n2\n3\n",
+			expErr: errArrayEOF(2),
+		},
+
+		{
+			name:   "array that doesn't end - 2",
+			in:     sreader("[1, 2, 3,"),
+			exp:    "1\n2\n3\n",
+			expErr: errArrayEOF(3),
+		},
+
+		{
+			name:   "array that doesn't end - stutter comma",
+			in:     sreader("[1, 2, 3,,"),
+			exp:    "1\n2\n3\n",
+			expErr: errBadArrayValueStart(',', 3),
 		},
 	}
 
