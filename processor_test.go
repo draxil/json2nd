@@ -280,10 +280,22 @@ func TestProcessor(t *testing.T) {
 			exp:  `"zyx"` + "\n",
 		},
 		{
-			name:   "object that just ends",
+			name:   "object that doesn't close",
 			in:     sreader(`{"x":`),
 			exp:    `{"x":`,
 			expErr: io.EOF,
+		},
+		// FUTURE: perhaps error
+		{
+			name: "multiple strings",
+			in:   sreader(`"one" "two"`),
+			exp:  `"one"` + "\n",
+		},
+		// FUTURE: perhaps error
+		{
+			name: "multiple objects",
+			in:   sreader(`{} {}`),
+			exp:  `{}` + "\n",
 		},
 	}
 
