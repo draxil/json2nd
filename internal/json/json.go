@@ -243,7 +243,7 @@ func (j *JSON) WriteCurrentTo(w io.Writer, includeDeliminators bool) (int, error
 				return 0, err
 			}
 			if !more {
-				break
+				return alreadyWritten, io.EOF
 			}
 		} else {
 

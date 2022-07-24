@@ -279,6 +279,12 @@ func TestProcessor(t *testing.T) {
 			in:   sreader(`    "zyx"`),
 			exp:  `"zyx"` + "\n",
 		},
+		{
+			name:   "object that just ends",
+			in:     sreader(`{"x":`),
+			exp:    `{"x":`,
+			expErr: io.EOF,
+		},
 	}
 
 	for _, tc := range cases {
