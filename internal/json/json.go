@@ -208,6 +208,7 @@ func (j *JSON) WriteCurrentTo(w io.Writer, includeDeliminators bool) (int, error
 	j.MoveOff()
 
 	for {
+
 		end, err = scanner.scan(j.buf, j.idx, j.bytes)
 		if err != nil {
 			return 0, err
@@ -219,9 +220,17 @@ func (j *JSON) WriteCurrentTo(w io.Writer, includeDeliminators bool) (int, error
 			alreadyWritten++
 		}
 
+		if j.idx < j.bytes && j.buf[j.idx] == '\n' && end > j.idx {
+			end--
+		}
+
 		wn, err = w.Write(j.buf[j.idx:end])
 		if err != nil {
 			return 0, err
+		}
+
+		if j.idx < j.bytes && j.buf[j.idx] == '\n' {
+			end++
 		}
 
 		j.idx = end

@@ -277,6 +277,34 @@ func TestCurrentWriteTo(t *testing.T) {
 			exp:     "-12.01-210",
 			expClue: '-',
 		},
+		{
+			name:    "simple newline infested array (+delims)",
+			in:      sread("\n[\n1\n,\n2\n,\n3\n\n,\n4\n]\n"),
+			delims:  true,
+			exp:     "[1,2,3,4]",
+			expClue: '[',
+		},
+		{
+			name:    "simple newline infested array (-delims)",
+			in:      sread("\n[\n1\n,\n2\n,\n3\n\n,\n4\n]\n"),
+			delims:  false,
+			exp:     "1,2,3,4",
+			expClue: '[',
+		},
+		{
+			name:    "simple newline infested object (+delims)",
+			in:      sread("\n{\"one\"\n:\n1\n,\"two\"\n:\n2\n,\n\"three\"\n:\n3\n\n,\n\"four\"\n:4\n}\n"),
+			delims:  true,
+			exp:     "{\"one\":1,\"two\":2,\"three\":3,\"four\":4}",
+			expClue: '{',
+		},
+		{
+			name:    "simple newline infested object (-delims)",
+			in:      sread("\n{\"one\"\n:\n1\n,\"two\"\n:\n2\n,\n\"three\"\n:\n3\n\n,\n\"four\"\n:4\n}\n"),
+			delims:  false,
+			exp:     "\"one\":1,\"two\":2,\"three\":3,\"four\":4",
+			expClue: '{',
+		},
 	}
 
 	for _, tc := range cases {

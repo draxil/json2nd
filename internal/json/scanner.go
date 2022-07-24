@@ -50,9 +50,16 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 		b := chunk[idx]
 
 		// is whitespace?
-		if b <= ' ' && (b == ' ' || b == '\t' || b == '\r' || b == '\n') {
-			s.last = b
-			continue
+		if b <= ' ' {
+			if b == ' ' || b == '\t' || b == '\r' || (s.seeking && b == '\n') {
+				s.last = b
+				continue
+			}
+
+			// FUTURE: better way to communicate skips
+			if !s.seeking && b == '\n' && !s.inStr {
+				return idx, nil
+			}
 		}
 
 		if b == '"' {

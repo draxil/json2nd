@@ -249,6 +249,16 @@ func TestProcessor(t *testing.T) {
 			exp:    "1\n2\n3\n",
 			expErr: errBadArrayValueStart(',', 3),
 		},
+		{
+			name: "array + \\ns",
+			in:   sreader("[\n1,\n2,\n3\n,\n4\n,{\n\"five\"\n:\n5}\n]"),
+			exp:  "1\n2\n3\n4\n{\"five\":5}\n",
+		},
+		{
+			name: "object + \\ns",
+			in:   sreader("{\n\"five\"\n:\n5}\n"),
+			exp:  "{\"five\":5}\n",
+		},
 	}
 
 	for _, tc := range cases {
