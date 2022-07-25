@@ -61,7 +61,7 @@ func TestFileMode(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			out := bytes.NewBuffer(nil)
 			err := filemode(tc.files, out, false, tc.path)
-			assert.Equal(t, tc.exp, string(out.Bytes()), "output")
+			assert.Equal(t, tc.exp, out.String(), "output")
 			tc.checkErr(t, err)
 		})
 	}

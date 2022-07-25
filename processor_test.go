@@ -198,7 +198,7 @@ func TestProcessor(t *testing.T) {
 			in:     sreader(`{"something":  truex  }`),
 			path:   "something",
 			exp:    "",
-			expErr: json.ErrBadValue{"truex"},
+			expErr: json.ErrBadValue{Value: "truex"},
 		},
 		// technically invalid JSON, but we're not a real parser ;)
 		{
@@ -308,7 +308,7 @@ func TestProcessor(t *testing.T) {
 				tc.expectArray,
 				tc.path,
 			}.run()
-			assert.Equal(t, tc.exp, string(out.Bytes()), "expected output")
+			assert.Equal(t, tc.exp, out.String(), "expected output")
 			if tc.errChecker != nil {
 				tc.errChecker(t, err)
 			} else {
