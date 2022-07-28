@@ -72,6 +72,8 @@ Originally I did, but they were either slow or insisted on having the entire fil
 
 Joe Higton <draxil@gmail.com>
 
+- [[https://www.reddit.com/user/skeeto/][/u/skeeto/]] for some helpful comments.
+
 * Licence
 
 Please see the [[./LICENSE][licence file]].

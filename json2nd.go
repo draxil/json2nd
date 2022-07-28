@@ -39,4 +39,5 @@ func bail_if_err(e error) {
 	}
 
 	fmt.Fprintln(os.Stderr, e)
+	os.Exit(1)
 }
