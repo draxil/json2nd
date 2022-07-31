@@ -16,7 +16,7 @@ func main() {
 		return
 	}
 
-	err := processor{os.Stdin, os.Stdout, tolerant, path}.run()
+	err := processor{os.Stdin, os.Stdout, tolerant, path, true}.run()
 	bail_if_err(err)
 }
 

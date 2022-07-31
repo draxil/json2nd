@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"strings"
@@ -13,6 +14,7 @@ type processor struct {
 	out         io.Writer
 	expectArray bool
 	path        string
+	buffered    bool
 }
 
 // TODO: detect where not an object more tidily in path mode
@@ -90,13 +92,20 @@ func (p processor) handlePathNodes(nodes []string, scan *json.JSON) error {
 	}
 	return p.handlePathNodes(nodes, scan)
 }
+func (p processor) prepOut() (w io.Writer, finishOut func() error) {
+	if p.buffered {
+		bw := bufio.NewWriter(p.out)
+		return bw, bw.Flush
+	}
+	return p.out, func() error { return nil }
+}
 
 func (p processor) handleArray(js *json.JSON) error {
 
-	// TODO more in json
-
 	// shift the cursor from the start of the array:
 	js.MoveOff()
+
+	out, finishOut := p.prepOut()
 
 	arrayIDX := 0
 	for {
@@ -109,13 +118,13 @@ func (p processor) handleArray(js *json.JSON) error {
 			return errBadArrayValueStart(c, arrayIDX)
 		}
 
-		n, err := js.WriteCurrentTo(p.out, true)
+		n, err := js.WriteCurrentTo(out, true)
 
 		if err != nil {
 			return arrayJSONErr(err)
 		}
 		if n > 0 {
-			_, err := p.out.Write([]byte("\n"))
+			_, err := out.Write([]byte("\n"))
 			if err != nil {
 				return arrayJSONErr(err)
 			}
@@ -130,7 +139,7 @@ func (p processor) handleArray(js *json.JSON) error {
 		}
 
 		if c == ']' {
-			return nil
+			break
 		}
 		if c == ',' {
 			js.MoveOff()
@@ -140,10 +149,12 @@ func (p processor) handleArray(js *json.JSON) error {
 
 		arrayIDX++
 	}
-	return nil
+
+	return finishOut()
 }
 
 func (p processor) handleNonArray(j *json.JSON, clue byte) error {
+	out, finishOut := p.prepOut()
 
 	if p.expectArray {
 		return errNotArrayWas(guessJSONType(j.Peek()))
@@ -152,17 +163,18 @@ func (p processor) handleNonArray(j *json.JSON, clue byte) error {
 		return errPathLeadToBadValue(clue)
 	}
 
-	n, err := j.WriteCurrentTo(p.out, true)
+	n, err := j.WriteCurrentTo(out, true)
 	if err != nil {
 		return err
 	}
 	if n > 0 {
-		_, err := p.out.Write([]byte("\n"))
+		_, err := out.Write([]byte("\n"))
 		if err != nil {
 			return err
 		}
 	}
-	return nil
+
+	return finishOut()
 }
 
 func guessJSONType(clue byte) string {

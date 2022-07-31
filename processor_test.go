@@ -18,6 +18,7 @@ func TestProcessor(t *testing.T) {
 		in          io.Reader
 		path        string
 		expectArray bool
+		buffered    bool
 		exp         string
 		errChecker  func(*testing.T, error)
 		expErr      error
@@ -62,7 +63,12 @@ func TestProcessor(t *testing.T) {
 			in:   sreader(`[{"a":1},{"b":2}]`),
 			exp:  `{"a":1}` + "\n" + `{"b":2}` + "\n",
 		},
-
+		{
+			name:     "simple use-case + buffering",
+			in:       sreader(`[{"a":1},{"b":2}]`),
+			exp:      `{"a":1}` + "\n" + `{"b":2}` + "\n",
+			buffered: true,
+		},
 		{
 			name: "nested array",
 			in:   sreader(`[[{"a":1},{"b":2}], [2]]`),
@@ -134,6 +140,12 @@ func TestProcessor(t *testing.T) {
 		},
 		{
 			name: "path leads to non-array",
+			in:   sreader(`{"something":{}}`),
+			path: "something",
+			exp:  "{}\n",
+		},
+		{
+			name: "path leads to non-array + buffering",
 			in:   sreader(`{"something":{}}`),
 			path: "something",
 			exp:  "{}\n",
@@ -307,6 +319,7 @@ func TestProcessor(t *testing.T) {
 				out,
 				tc.expectArray,
 				tc.path,
+				tc.buffered,
 			}.run()
 			assert.Equal(t, tc.exp, out.String(), "expected output")
 			if tc.errChecker != nil {

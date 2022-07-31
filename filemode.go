@@ -14,7 +14,7 @@ func filemode(files []string, out io.Writer, expectArray bool, path string) erro
 			return fileOpenErr(name, err)
 		}
 
-		p := processor{f, out, expectArray, path}
+		p := processor{f, out, expectArray, path, true}
 		err = p.run()
 		if err != nil {
 			return fileProcessErr(name, err)
