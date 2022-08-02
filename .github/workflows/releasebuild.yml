@@ -26,4 +26,4 @@ jobs:
         project_path: "."
         binary_name: "json2nd"
         extra_files: LICENSE Readme.org doc/
-        ldflags: -X main.version=${{ GITHUB_REF }}
+        ldflags: -X main.version=${{ env.RELEASE_TAG }}
