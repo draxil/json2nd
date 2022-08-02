@@ -131,11 +131,12 @@ func TestWriteToByteChunkNoDelims(t *testing.T) {
 func TestCurrentWriteTo(t *testing.T) {
 
 	cases := []struct {
-		name    string
-		in      io.Reader
-		delims  bool
-		exp     string
-		expClue byte
+		name     string
+		in       io.Reader
+		delims   bool
+		exp      string
+		expClue  byte
+		checkErr func(t *testing.T, e error)
 	}{
 		{
 			name:    "nested array",
@@ -305,6 +306,24 @@ func TestCurrentWriteTo(t *testing.T) {
 			exp:     "\"one\":1,\"two\":2,\"three\":3,\"four\":4",
 			expClue: '{',
 		},
+		// not valid JSON but we tolerate it currently:
+		{
+			name:    "newline within a string",
+			in:      sread(`"` + "foo\nbar" + `"`),
+			delims:  false,
+			exp:     "foo\nbar",
+			expClue: '"',
+		},
+		{
+			name:    "array does not close, no tailing comma",
+			in:      sread("[1,3"),
+			delims:  false,
+			exp:     "1,3",
+			expClue: '[',
+			checkErr: func(t *testing.T, e error) {
+				assert.Equal(t, io.EOF, e)
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -318,7 +337,11 @@ func TestCurrentWriteTo(t *testing.T) {
 
 			out := strings.Builder{}
 			n, err := j.WriteCurrentTo(&out, tc.delims)
-			assert.NoError(t, err, "no error on WriteTo")
+			if tc.checkErr == nil {
+				assert.NoError(t, err, "no error on WriteTo")
+			} else {
+				tc.checkErr(t, err)
+			}
 			assert.Equal(t, tc.exp, out.String(), "output")
 			assert.Equal(t, len(tc.exp), n, "n")
 		})
