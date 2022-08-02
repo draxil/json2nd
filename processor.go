@@ -165,6 +165,9 @@ func (p processor) handleNonArray(j *json.JSON, clue byte) error {
 
 	n, err := j.WriteCurrentTo(out, true)
 	if err != nil {
+		if err == io.EOF {
+			return errNonArrayEOF(guessJSONType(clue))
+		}
 		return err
 	}
 	if n > 0 {
@@ -207,6 +210,13 @@ func errNilInput() error {
 
 func errNotArrayWas(t string) error {
 	return fmt.Errorf("expected structure to be an array but found: %s", t)
+}
+
+func errNonArrayEOF(t string) error {
+	if t == "" {
+		return fmt.Errorf("JSON data ended prematurely")
+	}
+	return fmt.Errorf("file ended before the end of value (%s)", t)
 }
 
 func errBadPath(chunk string) error {

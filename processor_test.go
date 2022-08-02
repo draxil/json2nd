@@ -256,6 +256,13 @@ func TestProcessor(t *testing.T) {
 		},
 
 		{
+			name:   "array that doesn't end (trailing ws)",
+			in:     sreader("[1, 2, 3,  "),
+			exp:    "1\n2\n3\n",
+			expErr: errArrayEOF(3),
+		},
+
+		{
 			name:   "array that doesn't end - stutter comma",
 			in:     sreader("[1, 2, 3,,"),
 			exp:    "1\n2\n3\n",
@@ -295,7 +302,7 @@ func TestProcessor(t *testing.T) {
 			name:   "object that doesn't close",
 			in:     sreader(`{"x":`),
 			exp:    `{"x":`,
-			expErr: io.EOF,
+			expErr: errNonArrayEOF("object"),
 		},
 		// FUTURE: perhaps error
 		{
