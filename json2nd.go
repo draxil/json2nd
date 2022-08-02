@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+var version = "dev"
+
 func main() {
 
 	tolerant, path, args := flags()
@@ -26,9 +28,16 @@ func flags() (tolerant bool, path string, args []string) {
 
 	pathValue := flag.String("path", "", "path to get to the JSON value you want to extract e.g key1.key2")
 
+	showVersion := flag.Bool("version", false, "print the version description for this tool and exit")
+
 	flag.Parse()
 
 	args = flag.Args()
+
+	if *showVersion {
+		fmt.Println(version)
+		os.Exit(0)
+	}
 
 	return *tolerantFlagValue, *pathValue, args
 }
