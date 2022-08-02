@@ -4,9 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime/debug"
 )
 
-var version = "dev"
+var version = ""
 
 func main() {
 
@@ -35,7 +36,17 @@ func flags() (tolerant bool, path string, args []string) {
 	args = flag.Args()
 
 	if *showVersion {
-		fmt.Println(version)
+		if version != "" {
+			fmt.Println(version)
+		} else {
+			info, ok := debug.ReadBuildInfo()
+			if ok {
+				fmt.Println(info.Main.Version)
+			} else {
+				fmt.Println("don't know")
+			}
+		}
+
 		os.Exit(0)
 	}
 
