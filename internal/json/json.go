@@ -289,7 +289,6 @@ func (j *JSON) writeCurrentNumber(w io.Writer) (int, error) {
 				return 0, err
 			}
 			if !more {
-				end = true
 				break
 			}
 		}

@@ -72,7 +72,7 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 					if s.seeking {
 						if s.closerBalance == 0 {
 							// TODO: probably not this way
-							if string(s.keybuf.Bytes()) == string(s.seek) {
+							if s.keybuf.String() == string(s.seek) {
 								s.seeking = false
 								s.seekFound = true
 								return idx, nil
