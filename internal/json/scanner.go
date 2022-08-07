@@ -1,7 +1,6 @@
 package json
 
 import (
-	"bytes"
 	"fmt"
 )
 
@@ -14,10 +13,13 @@ type state struct {
 	inStr         bool
 	key           bool
 	open          bool
-	seek          []byte
-	seeking       bool
-	seekFound     bool
-	keybuf        bytes.Buffer
+	seek          struct {
+		keyName  []byte
+		cursor   int
+		matching bool
+	}
+	seeking   bool
+	seekFound bool
 }
 
 func NewScanState(in byte) *state {
@@ -36,7 +38,9 @@ func NewScanState(in byte) *state {
 }
 
 func (s *state) seekFor(key string) {
-	s.seek = []byte(key)
+	s.seek.keyName = []byte(key)
+	s.seek.cursor = 0
+	s.seek.matching = false
 	s.seeking = true
 }
 
@@ -71,14 +75,12 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 					s.key = false
 					if s.seeking {
 						if s.closerBalance == 0 {
-							// TODO: probably not this way
-							if s.keybuf.String() == string(s.seek) {
+							if s.seek.matching && s.seek.cursor == len(s.seek.keyName) {
 								s.seeking = false
 								s.seekFound = true
 								return idx, nil
 							}
 						}
-						s.keybuf.Reset()
 						s.last = b
 					}
 				}
@@ -93,11 +95,20 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 				if s.in == '{' && !s.key && s.lastNotWs != ':' {
 					s.key = true
 				}
+				if s.seeking && s.closerBalance == 0 && s.key {
+					s.seek.cursor = 0
+					s.seek.matching = true
+				}
 			}
-		} else if s.seeking && s.key {
-			// store the part of the key we've found
-			// TODO: maybe don't care if not matching so far or something?
-			s.keybuf.WriteByte(b)
+		} else if s.seeking && s.key && s.seek.matching {
+			// is this the object key we were looking for?
+			if s.seek.cursor >= len(s.seek.keyName) {
+				s.seek.matching = false
+			} else if s.seek.keyName[s.seek.cursor] != b {
+				s.seek.matching = false
+			} else {
+				s.seek.cursor++
+			}
 		}
 
 		// possibly the end of whatever we are scanning
