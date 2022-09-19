@@ -304,17 +304,32 @@ func TestProcessor(t *testing.T) {
 			exp:    `{"x":`,
 			expErr: errNonArrayEOF("object"),
 		},
-		// FUTURE: perhaps error
 		{
 			name: "multiple strings",
 			in:   sreader(`"one" "two"`),
-			exp:  `"one"` + "\n",
+			exp:  `"one"` + "\n" + `"two"` + "\n",
 		},
-		// FUTURE: perhaps error
 		{
 			name: "multiple objects",
 			in:   sreader(`{} {}`),
-			exp:  `{}` + "\n",
+			exp:  `{}` + "\n" + `{}` + "\n",
+		},
+		{
+			name: "multiple objects with newlines",
+			in:   sreader(`{` + "\n" + `"foo":1,` + "\n" + `"bar"` + "\n" + `:123` + "\n" + `}` + "\n" + `{"x"` + "\n" + `:"spot"}` + "\n\n"),
+			exp:  `{"foo":1,"bar":123}` + "\n" + `{"x":"spot"}` + "\n",
+		},
+		{
+			name:   "one object followed by garbage",
+			in:     sreader(`{}` + "\n" + `fish`),
+			exp:    "{}\n",
+			expErr: json.ErrBadValue{Value: "fish\000"},
+		},
+		{
+			name:   "array in the stream",
+			in:     sreader(`{"p": 1234} [1 2 3 4]`),
+			exp:    `{"p": 1234}` + "\n",
+			expErr: errArrayInStream(),
 		},
 	}
 

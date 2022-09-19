@@ -2,15 +2,36 @@
 
 * If what we find isn't an array:
 
-A JSON value other than an array will just be extracted un-modfied, except we'll stick a newline on the end, and remove any newlines from within the record.
+A JSON value other than an array will just be extracted un-modfied,
+except we'll stick a newline on the end, and remove any newlines from
+within the record.
 
 * Check we're unpacking an array
 
-The main use case of this tool is to unpack arrays, but as NDJSON can be any type we don't raise an error if this is called with something other than array. However, you can apply the ~-expect-array~ flag to have ~json2nd~ check that whatever we're processing is an array.
+The main use case of this tool is to unpack arrays, but as NDJSON can
+be any type we don't raise an error if this is called with something
+other than array. However, you can apply the ~-expect-array~ flag to
+have ~json2nd~ check that whatever we're processing is an array.
 
 #+begin_src sh
   echo "{}" | json2nd -expect-array > object.json # will error
 #+end_src
+
+* Stream of things
+
+Say you have a stream of JSON sperated by whitespace, probably
+newlines (sounds like NDJSON eh?) but your objects may have been
+pretty printed so won't actually work as NDJSON.
+
+#+begin_src sh
+  printf "{\n}\n{} {\n} 1234 | json2nd" # output will be valid NDJSON
+#+end_src
+
+One caveat at this time is that if you hit an array json2nd will
+error, because it's default behaviour with respect to arrays conflicts
+with what's expected here. *Probably* the future here is it will
+preserve the array, when the first thing it sees is not an array, and
+we can have a flag for this as well. But not yet.
 
 * A cheap value finder
 
@@ -20,4 +41,5 @@ Although not it's true purpose:
   json2nd -path thing.i.want file.json
 #+end_src
 
-is quite easy to remember when you want to grab any old thing from some json.
+is quite easy to remember when you want to grab any old thing from
+some json.

@@ -18,7 +18,6 @@ type processor struct {
 }
 
 // TODO: detect where not an object more tidily in path mode
-// TODO: prove buf
 // TODO: no error on bad path mode?
 // TODO: builds?
 // TODO: how should default be for formatting
@@ -45,7 +44,7 @@ func (p processor) run() error {
 	}
 
 	if c != '[' {
-		return p.handleNonArray(js, c)
+		return p.handleNonArray(js, c, true)
 	}
 
 	return p.handleArray(js)
@@ -88,7 +87,7 @@ func (p processor) handlePathNodes(nodes []string, scan *json.JSON) error {
 			return p.handleArray(scan)
 		}
 
-		return p.handleNonArray(scan, clue)
+		return p.handleNonArray(scan, clue, false)
 	}
 	return p.handlePathNodes(nodes, scan)
 }
@@ -153,7 +152,7 @@ func (p processor) handleArray(js *json.JSON) error {
 	return finishOut()
 }
 
-func (p processor) handleNonArray(j *json.JSON, clue byte) error {
+func (p processor) handleNonArray(j *json.JSON, clue byte, topLevel bool) error {
 	out, finishOut := p.prepOut()
 
 	if p.expectArray {
@@ -163,18 +162,39 @@ func (p processor) handleNonArray(j *json.JSON, clue byte) error {
 		return errPathLeadToBadValue(clue)
 	}
 
-	n, err := j.WriteCurrentTo(out, true)
-	if err != nil {
-		if err == io.EOF {
-			return errNonArrayEOF(guessJSONType(clue))
+	for {
+		n, err := j.WriteCurrentTo(out, true)
+		if err != nil {
+			if err == io.EOF {
+				return errNonArrayEOF(guessJSONType(clue))
+			}
+			return err
 		}
-		return err
-	}
-	if n > 0 {
-		_, err := out.Write([]byte("\n"))
+		if n > 0 {
+			_, err := out.Write([]byte("\n"))
+			if err != nil {
+				return err
+			}
+		}
+
+		// we don't continue if we scanned down to this level
+		if !topLevel {
+			break
+		}
+
+		// okay now we're in some kind of JSON stream like
+		// NDJSON, so look for the next thing
+		clue, err := j.Next()
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
 			return err
 		}
+		if clue == '[' {
+			return errArrayInStream()
+		}
+
 	}
 
 	return finishOut()
@@ -263,4 +283,8 @@ func arrayJSONErr(e error) error {
 
 func peekErr(e error) error {
 	return fmt.Errorf("error looking for JSON: %w", e)
+}
+
+func errArrayInStream() error {
+	return fmt.Errorf("Found an array in what seemed to be a stream of other types, this is not handled yet. Report your use-case if you need this")
 }
