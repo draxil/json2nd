@@ -24,7 +24,7 @@ newlines (sounds like NDJSON eh?) but your objects may have been
 pretty printed so won't actually work as NDJSON.
 
 #+begin_src sh
-  printf "{\n}\n{} {\n} 1234 | json2nd" # output will be valid NDJSON
+  printf "{\n}\n{} {\n} 1234" | json2nd" # output will be valid NDJSON
 #+end_src
 
 One caveat at this time is that if you hit an array json2nd will
