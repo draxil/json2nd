@@ -28,14 +28,13 @@ func main() {
 		justPrintVersion()
 	}
 
-	// TODO: JUST PASS OPTIONS
 	if len(args) > 0 {
-		err := filemode(args, os.Stdout, opts.ExpectArray, opts.Path)
+		err := filemode(args, os.Stdout, opts)
 		bailIfError(err)
 		return
 	}
 
-	err = processor{os.Stdin, os.Stdout, opts.ExpectArray, opts.Path, true}.run()
+	err = processor{os.Stdin, os.Stdout, opts, true}.run()
 	bailIfError(err)
 }
 

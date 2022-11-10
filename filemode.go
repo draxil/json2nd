@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/draxil/json2nd/internal/options"
 )
 
-func filemode(files []string, out io.Writer, expectArray bool, path string) error {
+func filemode(files []string, out io.Writer, opts options.Set) error {
 
 	for _, name := range files {
 		f, err := os.Open(name)
@@ -14,7 +16,7 @@ func filemode(files []string, out io.Writer, expectArray bool, path string) erro
 			return fileOpenErr(name, err)
 		}
 
-		p := processor{f, out, expectArray, path, true}
+		p := processor{f, out, opts, true}
 		err = p.run()
 		if err != nil {
 			return fileProcessErr(name, err)

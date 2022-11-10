@@ -3,8 +3,10 @@ package main
 import (
 	"bytes"
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/draxil/json2nd/internal/options"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFileMode(t *testing.T) {
@@ -12,7 +14,7 @@ func TestFileMode(t *testing.T) {
 	cases := []struct {
 		name     string
 		files    []string
-		path     string
+		opts     options.Set
 		exp      string
 		checkErr func(t *testing.T, e error)
 	}{
@@ -51,8 +53,10 @@ func TestFileMode(t *testing.T) {
 			checkErr: func(t *testing.T, e error) {
 				assert.NoError(t, e)
 			},
-			path: "x",
-			exp:  `1` + "\n" + `2` + "\n" + `4` + "\n",
+			opts: options.Set{
+				Path: "x",
+			},
+			exp: `1` + "\n" + `2` + "\n" + `4` + "\n",
 		},
 		// TODO BAD FILE
 	}
@@ -60,7 +64,7 @@ func TestFileMode(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			out := bytes.NewBuffer(nil)
-			err := filemode(tc.files, out, false, tc.path)
+			err := filemode(tc.files, out, tc.opts)
 			assert.Equal(t, tc.exp, out.String(), "output")
 			tc.checkErr(t, err)
 		})

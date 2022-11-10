@@ -12,13 +12,13 @@ func TestOptParse(t *testing.T) {
 	cases := []struct {
 		name     string
 		in       []string
-		exp      Options
+		exp      Set
 		checkErr func(t *testing.T, e error)
 	}{
 		{
 			name: "no options",
 			in:   []string{},
-			exp:  Options{},
+			exp:  Set{},
 			checkErr: func(t *testing.T, e error) {
 				assert.NoError(t, e)
 			},
@@ -26,7 +26,7 @@ func TestOptParse(t *testing.T) {
 		{
 			name: "version",
 			in:   []string{"-version"},
-			exp: Options{
+			exp: Set{
 				JustPrintVersion: true,
 			},
 			checkErr: func(t *testing.T, e error) {
@@ -36,7 +36,7 @@ func TestOptParse(t *testing.T) {
 		{
 			name: "path",
 			in:   []string{"-path", "xyz.boo"},
-			exp: Options{
+			exp: Set{
 				Path: "xyz.boo",
 			},
 			checkErr: func(t *testing.T, e error) {
@@ -46,7 +46,7 @@ func TestOptParse(t *testing.T) {
 		{
 			name: "expect array",
 			in:   []string{"-expect-array"},
-			exp: Options{
+			exp: Set{
 				ExpectArray: true,
 			},
 			checkErr: func(t *testing.T, e error) {
@@ -62,8 +62,8 @@ func TestOptParse(t *testing.T) {
 		},
 		{
 			name: "help",
-			in: []string{"-help"},
-			checkErr: func(t *testing.T, e error){
+			in:   []string{"-help"},
+			checkErr: func(t *testing.T, e error) {
 				assert.Equal(t, e, flag.ErrHelp)
 			},
 		},

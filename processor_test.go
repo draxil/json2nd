@@ -8,55 +8,56 @@ import (
 	"testing"
 
 	"github.com/draxil/json2nd/internal/json"
+	"github.com/draxil/json2nd/internal/options"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestProcessor(t *testing.T) {
 
 	cases := []struct {
-		name        string
-		in          io.Reader
-		path        string
-		expectArray bool
-		buffered    bool
-		exp         string
-		errChecker  func(*testing.T, error)
-		expErr      error
+		name       string
+		in         io.Reader
+		opts       options.Set
+		buffered   bool
+		exp        string
+		errChecker func(*testing.T, error)
+		expErr     error
 	}{
 		{
 			name:   "nil reader",
 			expErr: errNilInput(),
 		},
 		{
-			name:        "non-array tolerant behaviour",
-			expectArray: false,
-			in:          sreader("{}"),
-			exp:         "{}\n",
+			name: "non-array tolerant behaviour",
+			in:   sreader("{}"),
+			exp:  "{}\n",
 		},
 		{
-			name:        "non-array but expect one",
-			expectArray: true,
-			in:          sreader("{}"),
-			expErr:      errNotArrayWas("object"),
+			name: "non-array but expect one",
+			opts: options.Set{
+				ExpectArray: true,
+			},
+			in:     sreader("{}"),
+			expErr: errNotArrayWas("object"),
 		},
 		{
-			name:        "non-array + leading whitespace + tolerant",
-			expectArray: false,
-			in:          sreader("   \r\n{}"),
-			exp:         "{}\n",
+			name: "non-array + leading whitespace + tolerant",
+			in:   sreader("   \r\n{}"),
+			exp:  "{}\n",
 		},
 		{
-			name:        "just whitespace + tolerant",
-			expectArray: false,
-			in:          sreader("           "),
-			exp:         "",
-			expErr:      errNoJSON(),
+			name:   "just whitespace + tolerant",
+			in:     sreader("           "),
+			exp:    "",
+			expErr: errNoJSON(),
 		},
 		{
-			name:        "just whitespace not tolerant",
-			in:          sreader("           "),
-			expectArray: true,
-			expErr:      errNoJSON(),
+			name: "just whitespace not tolerant",
+			in:   sreader("           "),
+			opts: options.Set{
+				ExpectArray: true,
+			},
+			expErr: errNoJSON(),
 		},
 		{
 			name: "simple use-case",
@@ -85,130 +86,172 @@ func TestProcessor(t *testing.T) {
 			exp:  "false\ntrue\nfalse\nnull\n",
 		},
 		{
-			name:   "bad path",
-			in:     sreader(`{}`),
-			path:   "something",
+			name: "bad path",
+			in:   sreader(`{}`),
+			opts: options.Set{
+				Path: "something",
+			},
 			expErr: errBadPath("something"),
 		},
 		{
-			name:   "bad path one down",
-			in:     sreader(`{"something":{}}`),
-			path:   "something.else",
+			name: "bad path one down",
+			in:   sreader(`{"something":{}}`),
+			opts: options.Set{
+				Path: "something.else",
+			},
 			expErr: errBadPath("else"),
 		},
 		{
 			name: "good simple path to string array",
 			in:   sreader(`{"something":{"else":["one", "two"]}}`),
-			path: "something.else",
-			exp:  `"one"` + "\n" + `"two"` + "\n",
+			opts: options.Set{
+				Path: "something.else",
+			},
+			exp: `"one"` + "\n" + `"two"` + "\n",
 		},
 		{
-			name:   "broken path - 1",
-			in:     sreader(`{"something":{}}`),
-			path:   ".",
+			name: "broken path - 1",
+			in:   sreader(`{"something":{}}`),
+			opts: options.Set{
+				Path: ".",
+			},
 			expErr: errBlankPath(),
 		},
 		{
-			name:   "broken path - 2",
-			in:     sreader(`{"something":{}}`),
-			path:   "something.",
+			name: "broken path - 2",
+			in:   sreader(`{"something":{}}`),
+			opts: options.Set{
+				Path: "something.",
+			},
 			expErr: errBlankPath(),
 		},
 		{
-			name:   "broken path - 2",
-			in:     sreader(`{"something":{}}`),
-			path:   "something..",
+			name: "broken path - 2",
+			in:   sreader(`{"something":{}}`),
+			opts: options.Set{
+				Path: "something..",
+			},
 			expErr: errBlankPath(),
 		},
 		{
-			name:   "broken path - 3",
-			in:     sreader(`{"something":{}}`),
-			path:   "..",
+			name: "broken path - 3",
+			in:   sreader(`{"something":{}}`),
+			opts: options.Set{
+				Path: "..",
+			},
 			expErr: errBlankPath(),
 		},
 		{
-			name:   "broken path - 4",
-			in:     sreader(`{"something":{}}`),
-			path:   " ",
+			name: "broken path - 4",
+			in:   sreader(`{"something":{}}`),
+			opts: options.Set{
+				Path: " ",
+			},
 			expErr: errBadPath(" "),
 		},
 		{
-			name:   "broken path - 5",
-			in:     sreader(`{"something":{}}`),
-			path:   "\u200B",
+			name: "broken path - 5",
+			in:   sreader(`{"something":{}}`),
+			opts: options.Set{
+				Path: "\u200B",
+			},
 			expErr: errBadPath("\u200B"),
 		},
 		{
 			name: "path leads to non-array",
 			in:   sreader(`{"something":{}}`),
-			path: "something",
-			exp:  "{}\n",
+			opts: options.Set{
+				Path: "something",
+			},
+			exp: "{}\n",
 		},
 		{
 			name: "path leads to non-array + buffering",
 			in:   sreader(`{"something":{}}`),
-			path: "something",
-			exp:  "{}\n",
+			opts: options.Set{
+				Path: "something",
+			},
+			exp: "{}\n",
 		},
 		{
-			name:   "not JSON at all (looking for path)",
-			in:     sreader("boo"),
-			path:   "something",
+			name: "not JSON at all (looking for path)",
+			in:   sreader("boo"),
+			opts: options.Set{
+				Path: "something",
+			},
 			exp:    "",
 			expErr: json.ErrScanNotObject{On: 'b'},
 		},
 		{
-			name:   "path leads to non-JSON",
-			in:     sreader(`{"something":boo}`),
-			path:   "something",
+			name: "path leads to non-JSON",
+			in:   sreader(`{"something":boo}`),
+			opts: options.Set{
+				Path: "something",
+			},
 			expErr: errPathLeadToBadValue('b'),
 		},
 		{
 			name: "path leads to a number",
 			in:   sreader(`{"something":12}`),
-			path: "something",
-			exp:  "12\n",
+			opts: options.Set{
+				Path: "something",
+			},
+			exp: "12\n",
 		},
 		{
 			name: "path leads to a space padded number",
 			in:   sreader(`{"something":  12  }`),
-			path: "something",
-			exp:  "12\n",
+			opts: options.Set{
+				Path: "something",
+			},
+			exp: "12\n",
 		},
 		{
 			name: "path leads to a space padded float",
 			in:   sreader(`{"something":  12.12  }`),
-			path: "something",
-			exp:  "12.12\n",
+			opts: options.Set{
+				Path: "something",
+			},
+			exp: "12.12\n",
 		},
 		{
 			name: "path leads to a space padded negative float",
 			in:   sreader(`{"something":  -12.12  }`),
-			path: "something",
-			exp:  "-12.12\n",
+			opts: options.Set{
+				Path: "something",
+			},
+			exp: "-12.12\n",
 		},
 		{
 			name: "path leads to a bool (true)",
 			in:   sreader(`{"something":  true  }`),
-			path: "something",
-			exp:  "true\n",
+			opts: options.Set{
+				Path: "something",
+			},
+			exp: "true\n",
 		},
 		{
 			name: "path leads to a bool (false)",
 			in:   sreader(`{"something":  false  }`),
-			path: "something",
-			exp:  "false\n",
+			opts: options.Set{
+				Path: "something",
+			},
+			exp: "false\n",
 		},
 		{
 			name: "path leads to a null",
 			in:   sreader(`{"something":  null  }`),
-			path: "something",
-			exp:  "null\n",
+			opts: options.Set{
+				Path: "something",
+			},
+			exp: "null\n",
 		},
 		{
-			name:   "path leads to a bool (true), but with garbage afterwards",
-			in:     sreader(`{"something":  truex  }`),
-			path:   "something",
+			name: "path leads to a bool (true), but with garbage afterwards",
+			in:   sreader(`{"something":  truex  }`),
+			opts: options.Set{
+				Path: "something",
+			},
 			exp:    "",
 			expErr: json.ErrBadValue{Value: "truex"},
 		},
@@ -216,28 +259,36 @@ func TestProcessor(t *testing.T) {
 		{
 			name: "path leads to a bool (true), but with comma afterwards",
 			in:   sreader(`{"something":  true,  }`),
-			path: "something",
-			exp:  "true\n",
+			opts: options.Set{
+				Path: "something",
+			},
+			exp: "true\n",
 		},
 
 		{
-			name:   "path goes through a null",
-			in:     sreader(`{"something":  null }`),
-			path:   "something.else",
+			name: "path goes through a null",
+			in:   sreader(`{"something":  null }`),
+			opts: options.Set{
+				Path: "something.else",
+			},
 			expErr: json.ErrScanNotObject{On: 'n'},
 		},
 
 		{
-			name:   "path goes through a bool",
-			in:     sreader(`{"something":  true }`),
-			path:   "something.else",
+			name: "path goes through a bool",
+			in:   sreader(`{"something":  true }`),
+			opts: options.Set{
+				Path: "something.else",
+			},
 			expErr: json.ErrScanNotObject{On: 't'},
 		},
 
 		{
-			name:   "path goes through a negative number",
-			in:     sreader(`{"something":  -129 }`),
-			path:   "something.else",
+			name: "path goes through a negative number",
+			in:   sreader(`{"something":  -129 }`),
+			opts: options.Set{
+				Path: "something.else",
+			},
 			expErr: json.ErrScanNotObject{On: '-'},
 		},
 
@@ -339,8 +390,7 @@ func TestProcessor(t *testing.T) {
 			err := processor{
 				tc.in,
 				out,
-				tc.expectArray,
-				tc.path,
+				tc.opts,
 				tc.buffered,
 			}.run()
 			assert.Equal(t, tc.exp, out.String(), "expected output")

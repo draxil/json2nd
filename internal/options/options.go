@@ -13,7 +13,7 @@ const (
 // New create an option handler that will parse the options from command line args
 func New(args []string) (Handler, error) {
 	var h Handler
-	var o Options
+	var o Set
 
 	h.FlagSet = flag.NewFlagSet("json2nd", flag.ContinueOnError)
 
@@ -44,10 +44,10 @@ func New(args []string) (Handler, error) {
 
 type Handler struct {
 	*flag.FlagSet
-	Options Options
+	Options Set
 }
 
-type Options struct {
+type Set struct {
 	ExpectArray      bool
 	JustPrintVersion bool
 	Path             string

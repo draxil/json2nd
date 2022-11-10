@@ -7,14 +7,14 @@ import (
 	"strings"
 
 	"github.com/draxil/json2nd/internal/json"
+	"github.com/draxil/json2nd/internal/options"
 )
 
 type processor struct {
-	in          io.Reader
-	out         io.Writer
-	expectArray bool
-	path        string
-	buffered    bool
+	in       io.Reader
+	out      io.Writer
+	options  options.Set
+	buffered bool
 }
 
 // TODO: detect where not an object more tidily in path mode
@@ -31,7 +31,7 @@ func (p processor) run() error {
 	}
 
 	js := json.New(p.in)
-	if p.path != "" {
+	if p.options.Path != "" {
 		return p.handlePath(js)
 	}
 
@@ -51,7 +51,7 @@ func (p processor) run() error {
 }
 
 func (p processor) handlePath(scan *json.JSON) error {
-	nodes := strings.Split(p.path, ".")
+	nodes := strings.Split(p.options.Path, ".")
 	return p.handlePathNodes(nodes, scan)
 }
 
@@ -155,7 +155,7 @@ func (p processor) handleArray(js *json.JSON) error {
 func (p processor) handleNonArray(j *json.JSON, clue byte, topLevel bool) error {
 	out, finishOut := p.prepOut()
 
-	if p.expectArray {
+	if p.options.ExpectArray {
 		return errNotArrayWas(guessJSONType(j.Peek()))
 	}
 	if !json.SaneValueStart(clue) {
