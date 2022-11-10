@@ -42,9 +42,6 @@ func New(args []string) (Handler, error) {
 	return h, err
 }
 
-// TODO actual usage etc
-// TODO: this doesn't work because we want the options to be a separate thing:
-
 type Handler struct {
 	*flag.FlagSet
 	Options Options
