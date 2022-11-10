@@ -5,59 +5,63 @@ import (
 	"fmt"
 	"os"
 	"runtime/debug"
+
+	"github.com/draxil/json2nd/internal/options"
 )
 
 var version = ""
 
 func main() {
 
-	tolerant, path, args := flags()
+	oh, err := options.New(os.Args[1:])
+	if err != nil {
+		if err == flag.ErrHelp {
+			os.Exit(0)
+		}
+		bail(err)
+	}
 
+	args := oh.Args()
+	opts := oh.Options
+
+	if opts.JustPrintVersion {
+		justPrintVersion()
+	}
+
+	// TODO: JUST PASS OPTIONS
 	if len(args) > 0 {
-		err := filemode(args, os.Stdout, tolerant, path)
-		bail_if_err(err)
+		err := filemode(args, os.Stdout, opts.ExpectArray, opts.Path)
+		bailIfError(err)
 		return
 	}
 
-	err := processor{os.Stdin, os.Stdout, tolerant, path, true}.run()
-	bail_if_err(err)
+	err = processor{os.Stdin, os.Stdout, opts.ExpectArray, opts.Path, true}.run()
+	bailIfError(err)
 }
 
-func flags() (tolerant bool, path string, args []string) {
-
-	tolerantFlagValue := flag.Bool("expect-array", false, "check that whatever we're processing is an array, and fail if not.")
-
-	pathValue := flag.String("path", "", "path to get to the JSON value you want to extract e.g key1.key2")
-
-	showVersion := flag.Bool("version", false, "print the version description for this tool and exit")
-
-	flag.Parse()
-
-	args = flag.Args()
-
-	if *showVersion {
-		if version != "" {
-			fmt.Println(version)
-		} else {
-			info, ok := debug.ReadBuildInfo()
-			if ok {
-				fmt.Println(info.Main.Version)
-			} else {
-				fmt.Println("don't know")
-			}
-		}
-
-		os.Exit(0)
-	}
-
-	return *tolerantFlagValue, *pathValue, args
-}
-
-func bail_if_err(e error) {
+func bailIfError(e error) {
 	if e == nil {
 		return
 	}
 
+	bail(e)
+}
+
+func bail(e error) {
 	fmt.Fprintln(os.Stderr, e)
 	os.Exit(1)
+}
+
+func justPrintVersion() {
+	if version != "" {
+		fmt.Println(version)
+	} else {
+		info, ok := debug.ReadBuildInfo()
+		if ok {
+			fmt.Println(info.Main.Version)
+		} else {
+			fmt.Println("don't know")
+		}
+	}
+	os.Exit(0)
 }
