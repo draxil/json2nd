@@ -61,6 +61,28 @@ func TestOptParse(t *testing.T) {
 			},
 		},
 		{
+			name: "preserve array",
+			in:   []string{"-preserve-array"},
+			exp: Set{
+				PreserveArray: true,
+			},
+			checkErr: func(t *testing.T, e error) {
+				assert.NoError(t, e)
+			},
+		},
+		{
+			name: "preserve array + expect array",
+			in:   []string{"-preserve-array", "-expect-array"},
+			exp:  Set{},
+			checkErr: func(t *testing.T, e error) {
+				is := assert.Error(t, e)
+				if !is {
+					return
+				}
+				assert.Contains(t, e.Error(), "options conflict", "error message")
+			},
+		},
+		{
 			name: "help",
 			in:   []string{"-help"},
 			checkErr: func(t *testing.T, e error) {

@@ -378,9 +378,17 @@ func TestProcessor(t *testing.T) {
 		},
 		{
 			name:   "array in the stream",
-			in:     sreader(`{"p": 1234} [1 2 3 4]`),
+			in:     sreader(`{"p": 1234} [1,2,3,4]`),
 			exp:    `{"p": 1234}` + "\n",
 			expErr: errArrayInStream(),
+		},
+		{
+			name: "two arrays in the stream + preserve array",
+			in:   sreader("[1,2][3,4]"),
+			opts: options.Set{
+				PreserveArray: true,
+			},
+			exp: "[1,2]\n" + "[3,4]\n",
 		},
 	}
 

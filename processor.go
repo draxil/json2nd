@@ -43,7 +43,7 @@ func (p processor) run() error {
 		return errNoJSON()
 	}
 
-	if c != '[' {
+	if c != '[' || p.options.PreserveArray {
 		return p.handleNonArray(js, c, true)
 	}
 
@@ -91,6 +91,7 @@ func (p processor) handlePathNodes(nodes []string, scan *json.JSON) error {
 	}
 	return p.handlePathNodes(nodes, scan)
 }
+
 func (p processor) prepOut() (w io.Writer, finishOut func() error) {
 	if p.buffered {
 		bw := bufio.NewWriter(p.out)
@@ -191,7 +192,7 @@ func (p processor) handleNonArray(j *json.JSON, clue byte, topLevel bool) error 
 		if err != nil {
 			return err
 		}
-		if clue == '[' {
+		if clue == '[' && !p.options.PreserveArray {
 			return errArrayInStream()
 		}
 
@@ -285,5 +286,5 @@ func peekErr(e error) error {
 }
 
 func errArrayInStream() error {
-	return fmt.Errorf("Found an array in what seemed to be a stream of other types, this is not handled yet. Report your use-case if you need this")
+	return fmt.Errorf("Found an array in what seemed to be a JSON stream. Consider using -%s", options.OptPreserveArray)
 }
