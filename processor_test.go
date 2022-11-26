@@ -188,7 +188,7 @@ func TestProcessor(t *testing.T) {
 			opts: options.Set{
 				Path: "something",
 			},
-			expErr: errPathLeadToBadValue('b'),
+			expErr: errPathLeadToBadValue('b', "something"),
 		},
 		{
 			name: "path leads to a number",
@@ -451,7 +451,7 @@ func TestErrPathLeadToBadValueMessage(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := errPathLeadToBadValue(tc.clue)
+			err := errPathLeadToBadValue(tc.clue, "xyz")
 			str := err.Error()
 			assert.Contains(t, str, tc.contains)
 		})

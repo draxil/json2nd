@@ -159,7 +159,7 @@ func (p processor) handleNonArray(j *json.JSON, clue byte, topLevel bool) error 
 		return errNotArrayWas(guessJSONType(j.Peek()))
 	}
 	if !json.SaneValueStart(clue) {
-		return errPathLeadToBadValue(clue)
+		return errPathLeadToBadValue(clue, p.options.Path)
 	}
 
 	for {
@@ -246,15 +246,14 @@ func errBadPath(chunk string) error {
 func errBlankPath() error {
 	return fmt.Errorf("bad blank path node, did you have a double dot?")
 }
-func errPathLeadToBadValue(start byte) error {
+func errPathLeadToBadValue(start byte, path string) error {
 	t := guessJSONType(start)
 
-	// TODO: reference the path
 	if t != "" {
-		return fmt.Errorf("path lead to %s not an object", t)
+		return fmt.Errorf("path (%s) lead to %s not an object", path, t)
 	}
 
-	return fmt.Errorf("path lead to bad value start: %c", start)
+	return fmt.Errorf("path (%s) lead to bad value start: %c", path, start)
 }
 
 func errBadArrayValueStart(start byte, index int) error {
