@@ -29,9 +29,8 @@ pretty printed so won't actually work as NDJSON.
 
 One caveat at this time is that if you hit an array json2nd will
 error, because it's default behaviour with respect to arrays conflicts
-with what's expected here. *Probably* the future here is it will
-preserve the array, when the first thing it sees is not an array, and
-we can have a flag for this as well. But not yet.
+with what's expected here. If you are expecting a JSON stream that may 
+contain arrays you probably want to use the ~-preserve-array~ switch.
 
 * A cheap value finder
 
