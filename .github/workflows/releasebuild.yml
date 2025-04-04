@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v3
         # got to be a better way?
       - run: echo "RELEASE_TAG="`git describe --tags` >> $GITHUB_ENV
-      - uses: wangyoucao577/go-release-action@v1.30
+      - uses: wangyoucao577/go-release-action@v1.53
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
