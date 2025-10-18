@@ -1,5 +1,7 @@
 #+TITLE: json2nd
 
+*NOTE* primary development is now on [[https://codeberg.org/draxil/json2nd][codeberg]]. I'll try and remember to push here as well, but if you see this worth updating!
+
 * Usage
 
 Convert JSON with a top-level array to NDJSON (new-line delimited JSON, aka JSONL):
