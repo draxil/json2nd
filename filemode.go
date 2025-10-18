@@ -5,11 +5,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/draxil/json2nd/internal/options"
+	"codeberg.org/draxil/json2nd/internal/options"
 )
 
 func filemode(files []string, out io.Writer, opts options.Set) error {
-
 	for _, name := range files {
 		f, err := os.Open(name)
 		if err != nil {

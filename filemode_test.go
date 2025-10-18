@@ -5,12 +5,11 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/draxil/json2nd/internal/options"
+	"codeberg.org/draxil/json2nd/internal/options"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFileMode(t *testing.T) {
-
 	cases := []struct {
 		name     string
 		files    []string

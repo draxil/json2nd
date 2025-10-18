@@ -6,13 +6,12 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/draxil/json2nd/internal/options"
+	"codeberg.org/draxil/json2nd/internal/options"
 )
 
 var version = ""
 
 func main() {
-
 	oh, err := options.New(os.Args[1:])
 	if err != nil {
 		if err == flag.ErrHelp {

@@ -1,4 +1,4 @@
-module github.com/draxil/json2nd
+module codeberg.org/draxil/json2nd
 
 go 1.16
 

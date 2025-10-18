@@ -6,8 +6,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/draxil/json2nd/internal/json"
-	"github.com/draxil/json2nd/internal/options"
+	"codeberg.org/draxil/json2nd/internal/json"
+	"codeberg.org/draxil/json2nd/internal/options"
 )
 
 type processor struct {
@@ -25,7 +25,6 @@ type processor struct {
 // TODO: path to value?
 
 func (p processor) run() error {
-
 	if p.in == nil {
 		return errNilInput()
 	}
@@ -56,7 +55,6 @@ func (p processor) handlePath(scan *json.JSON) error {
 }
 
 func (p processor) handlePathNodes(nodes []string, scan *json.JSON) error {
-
 	// shouldn't be possible? But never say never.
 	if len(nodes) == 0 {
 		return fmt.Errorf("novel error 1: please report")
@@ -101,7 +99,6 @@ func (p processor) prepOut() (w io.Writer, finishOut func() error) {
 }
 
 func (p processor) handleArray(js *json.JSON) error {
-
 	// shift the cursor from the start of the array:
 	js.MoveOff()
 
@@ -119,7 +116,6 @@ func (p processor) handleArray(js *json.JSON) error {
 		}
 
 		n, err := js.WriteCurrentTo(out, true)
-
 		if err != nil {
 			return arrayJSONErr(err)
 		}
@@ -202,7 +198,6 @@ func (p processor) handleNonArray(j *json.JSON, clue byte, topLevel bool) error 
 }
 
 func guessJSONType(clue byte) string {
-
 	switch clue {
 	case '{':
 		return "object"
@@ -247,6 +242,7 @@ func errBadPath(chunk string) error {
 func errBlankPath() error {
 	return fmt.Errorf("bad blank path node, did you have a double dot?")
 }
+
 func errPathLeadToBadValue(start byte, path string) error {
 	t := guessJSONType(start)
 

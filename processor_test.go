@@ -7,13 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/draxil/json2nd/internal/json"
-	"github.com/draxil/json2nd/internal/options"
+	"codeberg.org/draxil/json2nd/internal/json"
+	"codeberg.org/draxil/json2nd/internal/options"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestProcessor(t *testing.T) {
-
 	cases := []struct {
 		name       string
 		in         io.Reader
@@ -422,7 +421,6 @@ func TestProcessor(t *testing.T) {
 }
 
 func TestGuessJsonType(t *testing.T) {
-
 	cases := []struct {
 		in  byte
 		exp string
@@ -449,7 +447,6 @@ func TestGuessJsonType(t *testing.T) {
 }
 
 func TestErrPathLeadToBadValueMessage(t *testing.T) {
-
 	cases := []struct {
 		name     string
 		clue     byte
