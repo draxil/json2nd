@@ -39,12 +39,12 @@ For more see [[./doc/other_usage.org][other usage scenarios]], and [[./doc/json_
 Assuming your ~$GOBIN~ directory is somewhere in your ~$PATH~ it's as simple as:
 
 #+begin_src sh
-  go install github.com/draxil/json2nd@latest
+  go install codeberg.org/draxil/json2nd@latest
 #+end_src
 
 ** Github releases
 
-There are builds of release points on github. Grab the relevent build from [[https://github.com/draxil/json2nd/releases][the github releases]] page, right now these just contain a binary and docs. 
+There are builds of release points on github (but soon codeberg). Grab the relevent build from [[https://github.com/draxil/json2nd/releases][the github releases]] page, right now these just contain a binary and docs. 
 
 * Plans / what about XYZ?
 
