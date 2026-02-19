@@ -69,7 +69,6 @@ func TestScanCloseBeforeEnd(t *testing.T) {
 	pos, _ := s.scan(buf, 0, len(buf))
 	assert.False(t, s.open)
 	assert.Equal(t, buf[pos], byte('}'), "cursor ends where we expect")
-
 }
 
 func TestScanStringDoesNotCloseObject(t *testing.T) {
@@ -97,6 +96,14 @@ func TestEscapedSubStringDoesNotClose(t *testing.T) {
 	assert.False(t, s.open)
 }
 
+func TestGithubNumberThree(t *testing.T) {
+	s := NewScanState('"')
+	buf := []byte(`\\"`)
+	_, err := s.scan(buf, 0, len(buf))
+	assert.NoError(t, err)
+	assert.False(t, s.open)
+}
+
 func TestScanOnChar(t *testing.T) {
 	s := NewScanState('Z')
 	buf := []byte(`x\"`)
@@ -117,7 +124,6 @@ func TestScanForSimple(t *testing.T) {
 	_, err = s.scan(buf, 0, len(buf))
 	assert.NoError(t, err)
 	assert.True(t, s.seekFound, "found")
-
 }
 
 func TestScanForSimpleWithNestedTrap(t *testing.T) {

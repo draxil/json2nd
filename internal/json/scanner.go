@@ -11,6 +11,7 @@ type state struct {
 	last          byte
 	lastNotWs     byte
 	inStr         bool
+	escape        bool
 	key           bool
 	open          bool
 	seek          struct {
@@ -23,7 +24,6 @@ type state struct {
 }
 
 func NewScanState(in byte) *state {
-
 	var inStr bool
 	if in == '"' {
 		inStr = true
@@ -45,7 +45,6 @@ func (s *state) seekFor(key string) {
 }
 
 func (s *state) scan(chunk []byte, idx, max int) (int, error) {
-
 	if s.closer == 0 {
 		return 0, ErrBadJSONValue{s.in}
 	}
@@ -66,9 +65,15 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 			}
 		}
 
+		if b == '\\' && s.inStr && !s.escape {
+			s.escape = true
+			continue
+		}
+
 		// start or end of a string:
 		if b == '"' {
-			if s.inStr && s.last != '\\' {
+			if s.inStr && !s.escape {
+
 				// end of string.
 				s.inStr = false
 				if s.in == '{' && s.key {
@@ -78,6 +83,7 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 							if s.seek.matching && s.seek.cursor == len(s.seek.keyName) {
 								s.seeking = false
 								s.seekFound = true
+								s.escape = false
 								return idx, nil
 							}
 						}
@@ -87,6 +93,7 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 				if s.closer == '"' {
 					s.last = b
 					s.open = false
+					s.escape = false
 					return idx, nil
 				}
 			} else if !s.inStr {
@@ -122,7 +129,6 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 				} else {
 					s.closerBalance--
 				}
-
 			} else if b == s.in {
 				s.closerBalance++
 			}
@@ -130,6 +136,7 @@ func (s *state) scan(chunk []byte, idx, max int) (int, error) {
 
 		s.last = b
 		s.lastNotWs = b
+		s.escape = false
 	}
 
 	return max, nil
