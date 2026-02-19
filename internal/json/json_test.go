@@ -23,7 +23,6 @@ func sread(s string) io.Reader {
 }
 
 func TestNext(t *testing.T) {
-
 	cases := []struct {
 		name   string
 		reader io.Reader
@@ -129,7 +128,6 @@ func TestWriteToByteChunkNoDelims(t *testing.T) {
 }
 
 func TestCurrentWriteTo(t *testing.T) {
-
 	cases := []struct {
 		name     string
 		in       io.Reader
@@ -324,6 +322,13 @@ func TestCurrentWriteTo(t *testing.T) {
 				assert.Equal(t, io.EOF, e)
 			},
 		},
+		{
+			name:    "github issue #3",
+			in:      sread(`[{"value":"abc\\"}]`),
+			delims:  false,
+			exp:     `{"value":"abc\\"}`,
+			expClue: '[',
+		},
 	}
 
 	for _, tc := range cases {
@@ -349,7 +354,6 @@ func TestCurrentWriteTo(t *testing.T) {
 }
 
 func TestScanForKey(t *testing.T) {
-
 	cases := []struct {
 		name     string
 		reader   io.Reader
@@ -424,7 +428,6 @@ func TestScanForKeyValueSimple(t *testing.T) {
 }
 
 func TestSaneValueStart(t *testing.T) {
-
 	cases := []struct {
 		in  byte
 		exp bool
